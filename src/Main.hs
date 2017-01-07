@@ -12,14 +12,14 @@ main = newmain
 
 
 oldmain :: IO ()
-oldmain = do 
+oldmain = do
     putStrLn $ show $ Pkg.installed Gentoo  "vim"
     putStrLn $ show $ Pkg.installed Debian  "vim"
 
 newmain :: IO ()
-newmain = do 
-    putStrLn $ bashScriptExecuter $ concat [ 
-        Pkg.installed Gentoo "vim" 
+newmain = do
+    putStrLn $ bashScriptExecuter $ concat [
+        Pkg.installed Gentoo "vim"
         , Pkg.installed Gentoo "salt"
         , Pkg.installed Gentoo "wireshark"
         ]

@@ -5,7 +5,7 @@ data Command =
         ShellCommand String
         | IfCommand {
             testCommand :: BoolCommand
-            , thenCommand :: [ Command ] 
+            , thenCommand :: [ Command ]
             , elseCommand :: [ Command ]
             }
         | InfoMsg String
