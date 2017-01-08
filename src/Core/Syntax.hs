@@ -11,6 +11,7 @@ type AzubiName = String
 type  CommandContext a =  a -> [ Command ]
 
 data CommandContainer a = CommandContainer a [ Command ]
+  deriving (Show, Eq)
 
 -- | call command creation function with context
 (&) :: (Context a) => CommandContainer a -> CommandContext a -> CommandContainer a

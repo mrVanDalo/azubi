@@ -36,9 +36,14 @@ exists file revertable =
       ( doExists ( Directory $ takeDirectory path ) )
       ++ [ InfoMsg $ "create symlink " ++ path ++ " -> " ++ target
          , ShellCommand $ "ln -s " ++ target ++ " " ++ path ]
-    doExists (Directory path) =
-      [ InfoMsg $ "create direcotory " ++ path
-      , ShellCommand $ "mkdir -p " ++ path ]
+    doExists (Directory path) = [
+      IfCommand {
+          testCommand = BoolCommand $ "-d " ++ path
+          , thenCommand = [ InfoMsg $ "directory " ++ path ++ " exists"]
+          , elseCommand = [ InfoMsg $ "create direcotory " ++ path
+                          , ShellCommand $ "mkdir -p " ++ path ]
+          }
+      ]
 
 
 notexists :: (Revertable a ) => File -> a -> [ Command ]
