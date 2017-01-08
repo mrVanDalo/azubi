@@ -1,22 +1,34 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Commands.Install where 
+module Commands.Install where
 
-import Commands.Command
+import Core.Context
+import Core.Revertable
+
+import Core.Command
 
 type Package = String
 
 -- check if installed or not
-class Installed a where
-    installed :: a -> Package -> [ Command ]
-    installed system package =
-        [ InfoMsg $ "Check for " ++ package ++ " installation"
-          , IfCommand 
-            (isInstalled  system package)
-            [ InfoMsg $ package ++ " is already installed" ] 
-            [ InfoMsg $ "installing " ++ package
-            , doInstall  system package ]
-        ]
+class (Context a, Revertable a) => Installed a where
+
+    installed :: Package -> a -> [ Command ]
+    installed package context =
+      if (isRevert context) then
+        uninstallCommands
+      else
+        installCommands
+      where
+        uninstallCommands =
+          [ IfCommand (isInstalled  context package)
+            ([ InfoMsg $ "uninstalling " ++ package ] ++ (doUnInstall  context package))
+            [ InfoMsg $ package ++ " is not installed" ]
+          ]
+        installCommands =
+          [ IfCommand (isInstalled  context package)
+            [ InfoMsg $ package ++ " is already installed" ]
+            $ [ InfoMsg $ "installing " ++ package ] ++ doInstall  context package
+          ]
 
 
     --
@@ -24,15 +36,8 @@ class Installed a where
     --
     isInstalled :: a -> Package -> BoolCommand
 
-    --
-    -- Do the installation
-    --
-    doInstall   :: a -> Package -> Command
+    doInstall   :: a -> Package -> [ Command ]
 
-    --
-    -- Do the uninstallation
-    --
-    doUnInstall :: a -> Package -> Command
-
+    doUnInstall :: a -> Package -> [ Command ]
 
 

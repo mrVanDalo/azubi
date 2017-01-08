@@ -2,14 +2,28 @@
 
 module Systems.Gentoo where
 
+import Core.Context
+import Core.Revertable
+
 import Commands.Install
-import Commands.Command
+import Core.Command
 
 data Gentoo = Gentoo
+  | GentooRevert
+
+instance Context Gentoo where
+  label _ = "Gentoo system"
+
+instance Revertable Gentoo where
+  isRevert GentooRevert = True
+  isRevert Gentoo       = False
+
+  toggleRevert GentooRevert = Gentoo
+  toggleRevert Gentoo       = GentooRevert
 
 instance Installed Gentoo where
-    isInstalled Gentoo package = BoolCommand $
-        "test `eix -e " ++ package ++ " | head -n1 | cut -d' ' -f 1` == '[I]'"
-    doInstall   Gentoo package = ShellCommand $ "emerge " ++ package
-    doUnInstall Gentoo package = ShellCommand $ "emerge --unmerge " ++ package
+    isInstalled _ package = BoolCommand $
+        "`eix -e " ++ package ++ " | head -n1 | cut -d' ' -f 1` == '[I]'"
+    doInstall   _ package = [ ShellCommand $ "emerge " ++ package ]
+    doUnInstall _ package = [ ShellCommand $ "emerge --unmerge " ++ package ]
 
