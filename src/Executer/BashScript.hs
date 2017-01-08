@@ -1,16 +1,15 @@
 
-module Executer.BashScript(bashScriptExecuter) where
+module Executer.BashScript(bashScriptExecuterCommands) where
 
 import Core.Command
-import Core.Syntax
 
 --
 -- This is a small renderer
 -- which compiles the wishlist into a shell-script
 --
 
-bashScriptExecuter :: CommandContainer a -> String
-bashScriptExecuter (CommandContainer _ commands) =
+bashScriptExecuterCommands :: [ Command ] -> String
+bashScriptExecuterCommands commands =
     foldl commandConcat "#!/bin/bash\n" $ map commandSnippet commands
     where
         commandConcat a b = a ++ "\n" ++ b
