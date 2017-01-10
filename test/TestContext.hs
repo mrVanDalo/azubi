@@ -1,6 +1,6 @@
 
 
-module TestContext where 
+module TestContext where
 
 import Core.Command
 import Core.Context
@@ -24,5 +24,5 @@ instance Revertable TestContext where
 
 instance Installed TestContext where
   isInstalled _ pkg = BoolCommand $ "check " ++ pkg
-  doInstall _ pkg = [ ShellCommand $ "install " ++ pkg ]
-  doUnInstall _ pkg = [ ShellCommand $ "uninstall " ++ pkg ]
+  doInstall _ pkg = [ SuperUserShellCommand $ "install " ++ pkg ]
+  doUnInstall _ pkg = [ SuperUserShellCommand $ "uninstall " ++ pkg ]

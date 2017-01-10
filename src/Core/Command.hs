@@ -8,6 +8,7 @@ module Core.Command where
 --   => dafür müssen Commands Checkable sein.
 
 data Command = ShellCommand String
+             | SuperUserShellCommand String
              | IfCommand { testCommand :: BoolCommand
                          , thenCommand :: [ Command ]
                          , elseCommand :: [ Command ]
@@ -17,8 +18,9 @@ data Command = ShellCommand String
                            }
              | InfoMsg String
              | ErrorMsg String
-             -- | todo : das soll noch rein
-             -- | LogMsg String
+             | Dependency { body :: [Command]
+                          , dependency :: [Command] }
+             | LogMsg String
              deriving (Show, Eq)
 
 -- exit code will decide if if is True or False

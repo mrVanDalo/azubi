@@ -21,6 +21,11 @@ submodule commands context =
   where
     injectContext f = f context
 
+requires :: (Context a) => (a -> [Command]) -> (a -> [Command])  -> a -> [Command]
+first `requires` sec = \context ->
+                          [ Dependency { body=(first context)
+                                       , dependency=(sec context)}]
+
 
 -- | add a command
 (&) :: (Context a) => [ (a -> [Command]) ] -> (a -> [Command] ) -> [ (a -> [Command])]

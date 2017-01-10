@@ -1,11 +1,12 @@
 
-
 import Commands.Install
 import Commands.File
 
+
 import Systems.Gentoo
 
-import Executer.BashScript
+import Render.BashScript
+import Core.Provision
 
 import Core.Syntax
 
@@ -13,10 +14,10 @@ import Core.Syntax
 
 main :: IO ()
 main = do
-  putStrLn $ bashScriptExecuterCommands $ azubi Gentoo $ []
+  putStrLn $ bashScriptExecuter Root $ azubi Gentoo $ []
     & installed "vim"
     ! installed "salt"
-    ! (submodule $ []
+    & (submodule $ []
        ! exists (Directory "/dev/shm/azubi-test")
        & contains (File "/dev/shm/azubi/contains") [ "this is a azubi test-line : " ++ (show i) | i <- [1,2..10]]
        & exists (Symlink "/dev/shm/azubi-link" "/dev/shm/azubi/contains")
@@ -27,10 +28,13 @@ main = do
       )
     ! exists (Directory "/dev/shm/Downloads")
     ! exists (Directory "/dev/shm/Documents")
-
+    & ((submodule $ []
+         & contains (File "/etc/vim/config") ["# config"]
+       ) `requires` (submodule $ []
+                      & installed "vim"
+                     ))
 -- next :
 -- ------
--- dependencies
 -- commands
 -- git
 

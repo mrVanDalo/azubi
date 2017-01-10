@@ -60,3 +60,7 @@ testSyntax =  do
       (azubi TestContext $ []
         ! (submodule $ []
             !? testFunction)) `shouldBe` []
+  describe "requires" $ do
+    it "returns a Dependency Command" $ do
+      (testFunction `requires` testFunction ) TestContext `shouldBe`
+        [Dependency [ShellCommand "got TestContext"] [ShellCommand "got TestContext"]]

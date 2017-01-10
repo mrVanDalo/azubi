@@ -24,6 +24,6 @@ instance Revertable Gentoo where
 instance Installed Gentoo where
     isInstalled _ package = BoolCommand $
         "`eix -e " ++ package ++ " | head -n1 | cut -d' ' -f 1` == '[I]'"
-    doInstall   _ package = [ ShellCommand $ "emerge " ++ package ]
-    doUnInstall _ package = [ ShellCommand $ "emerge --unmerge " ++ package ]
+    doInstall   _ package = [ SuperUserShellCommand $ "emerge " ++ package ]
+    doUnInstall _ package = [ SuperUserShellCommand $ "emerge --unmerge " ++ package ]
 

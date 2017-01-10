@@ -3,4 +3,12 @@
 module Core.Provision where
 
 
-class Provision a 
+data RenderContext = User SuperUserMethod
+                   | Root
+
+-- | the way SuperUserCommands should be called
+data SuperUserMethod = Sudo
+                     | Su
+                     | None
+
+

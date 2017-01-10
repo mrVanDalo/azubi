@@ -12,9 +12,6 @@ import Core.Command
 import TestContext
 
 
-
-
-
 testFile :: SpecWith ()
 testFile =  do
   describe "exists (File \"/etc/azubi/conf\")" $ do
@@ -55,4 +52,22 @@ testFile =  do
               elseCommand = [InfoMsg "create direcotory /etc/azubi"   -- | todo : checken ob es ein file gibt, und stattdessen dann löschen
                             , ShellCommand "mkdir -p /etc/azubi"]
             }
+        ]
+  describe "contains (File \"/dev/shm/foo\") [\"hallo\"]" $ do
+    it "returns a contain command and makes sure the directory exists" $ do
+      (contains (File "/dev/shm/foo") ["hallo"]) TestContext `shouldBe` [
+        IfCommand {
+            testCommand = BoolCommand "-e /dev/shm/foo",
+            thenCommand = [InfoMsg "/dev/shm/foo already exists"],
+            elseCommand = [IfCommand {
+                              testCommand = BoolCommand "-d /dev/shm",
+                              thenCommand = [InfoMsg "directory /dev/shm exists"],
+                              elseCommand = [InfoMsg "create direcotory /dev/shm",
+                                             ShellCommand "mkdir -p /dev/shm"]
+                              }
+                          ,InfoMsg "check existence of /dev/shm/foo"
+                          ,ShellCommand "touch /dev/shm/foo"]
+            }
+        ,InfoMsg "write content to /dev/shm/foo"
+        ,FileContent "/dev/shm/foo" ["hallo"]
         ]

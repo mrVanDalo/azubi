@@ -22,11 +22,11 @@ testInstall =  do
         IfCommand {
             testCommand = BoolCommand "check vim",
               thenCommand = [InfoMsg "vim is already installed"],
-              elseCommand = [InfoMsg "installing vim", ShellCommand "install vim"]}]
+              elseCommand = [InfoMsg "installing vim", SuperUserShellCommand "install vim"]}]
     context "when in Reverted Context" $ do
       it "returns Uninstall Commands " $ do
         (installed "vim" TestContextReverted) `shouldBe` [
           IfCommand {
               testCommand = BoolCommand "check vim",
-                thenCommand = [InfoMsg "uninstalling vim", ShellCommand "uninstall vim"],
+                thenCommand = [InfoMsg "uninstalling vim", SuperUserShellCommand "uninstall vim"],
                 elseCommand = [InfoMsg "vim is not installed"]}]
