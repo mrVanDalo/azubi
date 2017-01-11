@@ -1,10 +1,9 @@
 
 
--- to manage reverting of commands
+-- | to manage reverting of commands
+module Azubi.Core.Revertable where
 
-module Core.Revertable where
-
-import Core.Context
+import Azubi.Core.Context
 
 
 -- | Revertable context is for to implement

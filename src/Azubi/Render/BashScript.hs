@@ -1,15 +1,15 @@
 
-module Render.BashScript(bashScriptExecuter) where
+module Azubi.Render.BashScript(bashScriptExecuter) where
 
-import Core.Command
-import Core.Provision
+import Azubi.Core.Command
+import Azubi.Core.Provision
 
 --
 -- This is a small renderer
 -- which compiles the wishlist into a shell-script
 --
 
-bashScriptExecuter :: RenderContext -> [ Command ] -> String
+bashScriptExecuter :: UserContext -> [ Command ] -> String
 bashScriptExecuter context commands =
   unlines ([ "#!/bin/bash"
            , "#"
@@ -26,7 +26,7 @@ bashScriptExecuter context commands =
 
 
 
-bashScriptInit :: RenderContext -> [String]
+bashScriptInit :: UserContext -> [String]
 bashScriptInit Root = [ "if [[ `whoami` != root ]]; then"
                   , "  echo 'you must be root to run this script !'"
                   , "  exit 1"
@@ -35,7 +35,7 @@ bashScriptInit Root = [ "if [[ `whoami` != root ]]; then"
 bashScriptInit _ = []
 
 data BashScriptContext = BashScriptContext { dependencyStack :: [ String]
-                                           , renderContext :: RenderContext
+                                           , renderContext :: UserContext
                                            }
 
 
@@ -61,13 +61,13 @@ commandSnippet context@(BashScriptContext _ (User Sudo))  (SuperUserShellCommand
 commandSnippet context@(BashScriptContext _ (User Su))  (SuperUserShellCommand command) =
   commandSnippet context (ShellCommand $ "su - -c \"" ++ command ++"\"" )
 
-commandSnippet context (InfoMsg i) =
+commandSnippet _ (InfoMsg i) =
   ["echo 'INFO : " ++ i ++ "'" ]
 
-commandSnippet context (ErrorMsg i) =
+commandSnippet _ (ErrorMsg i) =
   ["echo 'ERROR: " ++ i ++ "'" ]
 
-commandSnippet context (LogMsg i) =
+commandSnippet _ (LogMsg i) =
   ["echo 'ERROR: " ++ i ++ "' >> azubi.log"]
 
 commandSnippet context (IfCommand (BoolCommand b) t e) =
@@ -77,8 +77,8 @@ commandSnippet context (IfCommand (BoolCommand b) t e) =
     ++ bodyIndent (map (commandSnippet context) e)
     ++ ["fi"]
 
-commandSnippet context (FileContent path content) =
-  [ "cat >" ++ path ++ " <<EOF" ]
+commandSnippet _ (FileContent contentPath content) =
+  [ "cat >" ++ contentPath ++ " <<EOF" ]
   ++ content
   ++ ["EOF"]
 
@@ -94,5 +94,5 @@ commandSnippet context (Dependency body dependency) =
 
 
 bodyIndent :: [[String]] -> [ String ]
-bodyIndent content =
-  map (\c -> "  " ++ c) $ concat content
+bodyIndent body =
+  map (\c -> "  " ++ c) $ concat body

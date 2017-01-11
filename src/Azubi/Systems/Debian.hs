@@ -1,15 +1,13 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+module Azubi.Systems.Debian where
 
-module Systems.Debian where
-
-import Core.Context
-import Core.Revertable
+import Azubi.Core.Context
+import Azubi.Core.Revertable
+import Azubi.Core.Command
 
 import Commands.Install
-import Core.Command
 
 data Debian = Debian
-  | DebianRevert
+            | DebianRevert
 
 instance Context Debian where
   label _ = "Debian System"

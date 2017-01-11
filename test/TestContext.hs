@@ -2,10 +2,11 @@
 
 module TestContext where
 
-import Core.Command
-import Core.Context
-import Commands.Install
-import Core.Revertable
+import Azubi.Core.Command
+import Azubi.Core.Context
+import Azubi.Core.Revertable
+
+import Azubi.Commands.Install
 
 data TestContext = TestContext
                  | TestContextReverted

@@ -4,8 +4,8 @@ module Commands.TestInstall(testInstall) where
 
 
 import Test.Hspec
-import Core.Command
-import Commands.Install
+import Azubi.Core.Command
+import Azubi.Commands.Install
 
 import TestContext
 

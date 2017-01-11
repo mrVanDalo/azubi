@@ -1,15 +1,14 @@
-{-# LANGUAGE ScopedTypeVariables #-}
 
-module Systems.Gentoo where
+module Azubi.Systems.Gentoo where
 
-import Core.Context
-import Core.Revertable
+import Azubi.Core.Context
+import Azubi.Core.Revertable
+import Azubi.Core.Command
 
-import Commands.Install
-import Core.Command
+import Azubi.Commands.Install
 
 data Gentoo = Gentoo
-  | GentooRevert
+            | GentooRevert
 
 instance Context Gentoo where
   label _ = "Gentoo system"

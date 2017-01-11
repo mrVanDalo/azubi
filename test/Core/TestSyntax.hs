@@ -5,8 +5,9 @@ module Core.TestSyntax (testSyntax) where
 
 import Test.Hspec
 
-import Core.Command
-import Core.Syntax
+import Azubi.Core.Command
+import Azubi.Core.Syntax
+
 import TestContext
 
 

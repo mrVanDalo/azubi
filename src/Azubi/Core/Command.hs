@@ -1,11 +1,5 @@
 
-module Core.Command where
-
--- todo :
--- need something like depends on.
---   Wenn Command A nicht erfolgreich war
---   Dann probier B erst gar nicht
---   => dafür müssen Commands Checkable sein.
+module Azubi.Core.Command where
 
 data Command = ShellCommand String
              | SuperUserShellCommand String

@@ -1,8 +1,9 @@
 
-module Commands.File where
+module Azubi.Commands.File where
 
-import Core.Revertable
-import Core.Command
+import Azubi.Core.Revertable
+import Azubi.Core.Command
+
 import System.FilePath
 
 data File = File { path :: String }

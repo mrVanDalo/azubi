@@ -1,11 +1,10 @@
 
 
-module Core.Syntax where
+module Azubi.Core.Syntax where
 
-
-import Core.Command
-import Core.Context
-import Core.Revertable
+import Azubi.Core.Command
+import Azubi.Core.Context
+import Azubi.Core.Revertable
 
 -- | wrap up everything
 azubi  :: (Context a) => a -> [(a -> [Command])] -> [Command]
@@ -54,4 +53,3 @@ first !? second = first ++ [ check ]
           if (isRevert con)
           then []
           else second (toggleRevert con)
-

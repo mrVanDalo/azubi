@@ -4,10 +4,10 @@ module Commands.TestFile (testFile) where
 
 
 
-import Commands.File
+import Azubi.Commands.File
+import Azubi.Core.Command
 
 import Test.Hspec
-import Core.Command
 
 import TestContext
 

@@ -1,6 +1,6 @@
 
 
-module Commands.User where
+module Azubi.Commands.User where
 
 
 data User = User { name :: String

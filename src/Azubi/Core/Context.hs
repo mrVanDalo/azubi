@@ -1,7 +1,6 @@
 
 
-module Core.Context where
-
+module Azubi.Core.Context where
 
 -- System Context,
 --

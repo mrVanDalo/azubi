@@ -1,11 +1,9 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+module Azubi.Commands.Install where
 
-module Commands.Install where
+import Azubi.Core.Context
+import Azubi.Core.Revertable
+import Azubi.Core.Command
 
-import Core.Context
-import Core.Revertable
-
-import Core.Command
 
 type Package = String
 
@@ -39,5 +37,4 @@ class (Context a, Revertable a) => Installed a where
     doInstall   :: a -> Package -> [ Command ]
 
     doUnInstall :: a -> Package -> [ Command ]
-
 
