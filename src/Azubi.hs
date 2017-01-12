@@ -13,6 +13,7 @@ module Azubi(azubiMain
             , exists
             , contains
             , File(..)
+            , azubiLogo
             ) where
 
 import Azubi.Core.Syntax
@@ -22,6 +23,7 @@ import Azubi.Core.Provision
 import Azubi.Systems.Gentoo
 
 import Azubi.Render.BashScript
+import Azubi.Render.Warez
 
 import Azubi.Commands.Install
 import Azubi.Commands.File
