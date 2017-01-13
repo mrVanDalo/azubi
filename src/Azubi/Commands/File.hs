@@ -4,6 +4,8 @@ module Azubi.Commands.File where
 import Azubi.Core.Revertable
 import Azubi.Core.Command
 
+import Azubi.Commands.Existance
+
 import System.FilePath
 
 data File = File { path :: String }
@@ -14,57 +16,49 @@ data File = File { path :: String }
 
 
 
+
 -- ------------------------------------------------------------
 --
 -- exists / not exists
 --
 -- ------------------------------------------------------------
-exists :: (Revertable a) => File -> a -> [ Command ]
-exists file revertable =
-  if (isRevert revertable) then
-    notexists file (toggleRevert revertable)
-  else
-    doExists file
-  where
-    doExists (File path) =
-      [ IfCommand (BoolCommand $ "-e " ++ path)
-        [ InfoMsg $ path ++ " already exists" ]
-        ((doExists ( Directory $ takeDirectory path ))
-          ++ [ InfoMsg $ "check existence of " ++ path
-             , ShellCommand $ "touch " ++  path ])
-      ]
-    doExists (Symlink path target) =
-      ( doExists ( Directory $ takeDirectory path ) )
-      ++ [ InfoMsg $ "create symlink " ++ path ++ " -> " ++ target
-         , ShellCommand $ "ln -s " ++ target ++ " " ++ path ]
-    doExists (Directory path) = [
-      IfCommand {
-          testCommand = BoolCommand $ "-d " ++ path
-          , thenCommand = [ InfoMsg $ "directory " ++ path ++ " exists"]
-          , elseCommand = [ InfoMsg $ "create direcotory " ++ path
-                          , ShellCommand $ "mkdir -p " ++ path ]
-          }
+instance Existance File where
+  doExists (File path) con =
+    [ IfCommand (BoolCommand $ "-e " ++ path)
+      [ InfoMsg $ path ++ " already exists" ]
+      ((doExists ( Directory $ takeDirectory path ) con)
+        ++ [ InfoMsg $ "check existence of " ++ path
+           , ShellCommand $ "touch " ++  path ])
       ]
 
+  doExists (Symlink path target) con =
+    ( doExists ( Directory $ takeDirectory path ) con)
+    ++ [ InfoMsg $ "create symlink " ++ path ++ " -> " ++ target
+       , ShellCommand $ "ln -s " ++ target ++ " " ++ path ]
 
-notexists :: (Revertable a ) => File -> a -> [ Command ]
-notexists file revertable =
-  if (isRevert revertable) then
-    exists file (toggleRevert revertable) 
-  else
-    doNotExists file
-  where
-    doNotExists (File path) =
-      [ IfCommand (BoolCommand $ "-e " ++ path)
-        [ShellCommand $ "rm -f " ++ path ]
-        [InfoMsg $ path ++ " does not exists"]
-      ]
-    doNotExists (Symlink path target) = doNotExists $ File path
-    doNotExists  (Directory path) =
-      [ IfCommand (BoolCommand $ "-e " ++ path)
-        [ShellCommand $ "rm -fr " ++ path ]
-        [InfoMsg $ path ++ " does not exists"]
-      ]
+  doExists (Directory path) con = [
+    IfCommand {
+        testCommand = BoolCommand $ "-d " ++ path
+        , thenCommand = [ LogMsg $ "directory " ++ path ++ " exists"]
+        , elseCommand = [ InfoMsg $ "create direcotory " ++ path
+                        , ShellCommand $ "mkdir -p " ++ path ]
+        }
+    ]
+
+
+  notExists (File path) con =
+    [ IfCommand (BoolCommand $ "-e " ++ path)
+      [ShellCommand $ "rm -f " ++ path ]
+      [InfoMsg $ path ++ " does not exists"]
+    ]
+
+  notExists (Symlink path target) con = notExists (File path) con
+
+  notExists  (Directory path) con =
+    [ IfCommand (BoolCommand $ "-d " ++ path)
+      [ ShellCommand $ "rm -fr " ++ path ]
+      [ LogMsg $ path ++ " does not exists" ]
+    ]
 
 
 
@@ -74,10 +68,12 @@ notexists file revertable =
 --
 -- ------------------------------------------------------------
 
+-- | todo : rename consists
+-- |        contain should mean that a string inside exists like this. (sed magic than happens)
 contains :: (Revertable a ) => File -> [ String ] -> a -> [ Command ]
 contains file content revertable =
   if (isRevert revertable) then
-    notexists file (toggleRevert revertable) 
+    notExists file revertable
   else
     doContent file
   where

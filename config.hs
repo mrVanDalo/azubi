@@ -9,7 +9,7 @@ main = azubiMain azubiSetup
 
 -- | example
 myConfig :: AzubiConfig
-myConfig = azubi Gentoo $ []
+myConfig = azubiConfig Gentoo $ []
       & installed "vim"
       ! installed "salt"
       & (submodule $ []
@@ -31,9 +31,8 @@ myConfig = azubi Gentoo $ []
       & installed "vim"
       ! exists (File "/dev/shm")
 
-
 azubiSetup :: AzubiConfig
-azubiSetup = azubi Gentoo $ []
+azubiSetup = azubiConfig Gentoo $ []
   & contains (File "~/azubi-config/azubi-config.cabal") [ "name:                azubi-config"
                                                         , "version:             0.1.0.0"
                                                         , "build-type:          Simple"
@@ -65,7 +64,7 @@ azubiSetup = azubi Gentoo $ []
                                                , "this will create a azubi.sh file you can run."
                                                , ""
                                                , "    cabal run && bash azubi.sh"]
-  
+
 
 
 -- next :

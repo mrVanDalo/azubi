@@ -64,6 +64,7 @@ library
   hs-source-dirs:      src
   build-depends:       base >=4.8 && < 4.9
                      , filepath >=1 && < 2
+                     , options >= 1.2 && < 2
   default-language:    Haskell2010
 
 
@@ -71,7 +72,7 @@ executable config
   -- .hs or .lhs file containing the Main module.
   main-is:             config.hs
   
-  ghc-options:         -Wall
+  -- ghc-options:         -Wall
   -- Modules included in this executable, other than Main.
   -- other-modules:       
   
@@ -80,7 +81,8 @@ executable config
   
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.8 && < 4.9
-                       , filepath >=1 && < 2
+                     , filepath >=1 && < 2
+                     , options >= 1.2 && < 2
   
   -- Directories containing source files.
   hs-source-dirs:      .

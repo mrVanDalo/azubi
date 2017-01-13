@@ -20,47 +20,68 @@ testSyntax :: SpecWith ()
 testSyntax =  do
   describe "CommandContainer (&) CommandContext " $ do
     it "calls function with Context" $ do
-      (azubi TestContext $ []
+      (azubiConfig TestContext $ []
        & testFunction) `shouldBe`  [ ShellCommand "got TestContext"]
 
   describe "CommandContainer (!) CommandContext " $ do
     it "reverts the context" $ do
-      (azubi TestContext $ []
+      (azubiConfig TestContext $ []
        ! testFunction) `shouldBe`  [ ShellCommand "got TestContextReverted"]
 
   describe "submodule" $ do
     it "should call all commands &" $ do
-      (azubi TestContext $ []
+      (azubiConfig TestContext $ []
         & (submodule $ []
             & testFunction
             ! testFunction)) `shouldBe` [ ShellCommand "got TestContext"
                                         , ShellCommand "got TestContextReverted"]
     it "should call the revert commands for !" $ do
-      (azubi TestContext $ []
+      (azubiConfig TestContext $ []
         ! (submodule $ []
             & testFunction
             ! testFunction)) `shouldBe` [ ShellCommand "got TestContextReverted"
                                         , ShellCommand "got TestContext"]
 
-    it "&? should get called for &" $ do
-      (azubi TestContext $ []
+    it "&?& should get called for &" $ do
+      (azubiConfig TestContext $ []
         & (submodule $ []
-            &? testFunction)) `shouldBe` [ ShellCommand "got TestContext"]
+            &?& testFunction)) `shouldBe` [ ShellCommand "got TestContext"]
 
-    it "&? should not get called nor reverted for !" $ do
-      (azubi TestContext $ []
+    it "&?& should not get called nor reverted for !" $ do
+      (azubiConfig TestContext $ []
         ! (submodule $ []
-            &? testFunction)) `shouldBe` []
+            &?& testFunction)) `shouldBe` []
 
-    it "!? should get called for &" $ do
-      (azubi TestContext $ []
+    it "!?& should get called for &" $ do
+      (azubiConfig TestContext $ []
         & (submodule $ []
-            !? testFunction)) `shouldBe` [ ShellCommand "got TestContextReverted" ]
+            !?& testFunction)) `shouldBe` [ ShellCommand "got TestContextReverted" ]
 
-    it "!? should not get called nor reverted for !" $ do
-      (azubi TestContext $ []
+    it "!?& should not get called nor reverted for !" $ do
+      (azubiConfig TestContext $ []
         ! (submodule $ []
-            !? testFunction)) `shouldBe` []
+            !?& testFunction)) `shouldBe` []
+
+    it "&?! should get called but not reverted for !" $ do
+      (azubiConfig TestContext $ []
+        ! (submodule $ []
+            &?! testFunction)) `shouldBe` [ ShellCommand "got TestContext"]
+
+    it "&?! should not get called nor reverted for &" $ do
+      (azubiConfig TestContext $ []
+        & (submodule $ []
+            &?! testFunction)) `shouldBe` []
+
+    it "!?! should get called and reverted for !" $ do
+      (azubiConfig TestContext $ []
+        ! (submodule $ []
+            !?! testFunction)) `shouldBe` [ ShellCommand "got TestContextReverted" ]
+
+    it "!?! should not get called nor reverted for &" $ do
+      (azubiConfig TestContext $ []
+        & (submodule $ []
+            !?! testFunction)) `shouldBe` []
+
   describe "requires" $ do
     it "returns a Dependency Command" $ do
       (testFunction `requires` testFunction ) TestContext `shouldBe`

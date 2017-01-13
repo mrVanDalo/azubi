@@ -1,11 +1,13 @@
 
 module Azubi(azubiMain
             , AzubiConfig
-            , azubi
+            , azubiConfig
             , (&)
             , (!)
-            , (&?)
-            , (!?)
+            , (&?&)
+            , (!?&)
+            , (&?!)
+            , (!?!)
             , submodule
             , requires
             , Gentoo(..)
@@ -14,7 +16,11 @@ module Azubi(azubiMain
             , contains
             , File(..)
             , azubiLogo
+            , run
             ) where
+
+import Options
+
 
 import Azubi.Core.Syntax
 import Azubi.Core.Command
@@ -26,18 +32,42 @@ import Azubi.Render.BashScript
 import Azubi.Render.Warez
 
 import Azubi.Commands.Install
+import Azubi.Commands.Existance
 import Azubi.Commands.File
+import Azubi.Commands.Run
 
 type AzubiConfig = [Command]
 
 -- | main class called by the user
+
 azubiMain :: [Command] -> IO ()
-azubiMain config = azubiMainExecute azubiContext  config
-  where
-    azubiContext = (BashScript $ User None) -- | will be read from the command line
+azubiMain config =
+  do
+    renderContext <- runCommand extractArguments
+    azubiMainExecute renderContext config
 
 azubiMainExecute :: RenderContext -> [Command] -> IO()
-azubiMainExecute (BashScript user) commands =
-  writeFile "./azubi.sh" $ bashScriptExecuter user commands
+azubiMainExecute (BashScript user output) commands =
+  writeFile output $ bashScriptExecuter user commands
 
 azubiMainExecute render _ = putStrLn $ (show render) ++ "not supported yet"
+
+
+-- | option parsing
+
+extractArguments :: AzubiOptions -> [String] -> IO RenderContext
+extractArguments opts args =
+  return (BashScript ( User None ) (optOutput opts))
+
+data AzubiOptions = AzubiOptions { optInit :: Bool
+                                 , optQuiet :: Bool
+                                 , optOutput :: String}
+
+instance Options AzubiOptions where
+  defineOptions = pure AzubiOptions
+    <*> simpleOption "init" False
+    "create init project in home folder"
+    <*> simpleOption "quiet" False
+    "Whether to be quiet."
+    <*> simpleOption "output" "./azubi.sh"
+    "Outfile of the scritpt"

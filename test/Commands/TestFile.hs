@@ -5,6 +5,8 @@ module Commands.TestFile (testFile) where
 
 
 import Azubi.Commands.File
+import Azubi.Commands.Existance
+
 import Azubi.Core.Command
 
 import Test.Hspec
@@ -22,7 +24,7 @@ testFile =  do
             thenCommand = [InfoMsg "/etc/azubi/conf already exists"],
             elseCommand = [ IfCommand {
                               testCommand = BoolCommand "-d /etc/azubi",
-                              thenCommand = [InfoMsg "directory /etc/azubi exists"],
+                              thenCommand = [LogMsg "directory /etc/azubi exists"],
                               elseCommand = [InfoMsg "create direcotory /etc/azubi"
                                             , ShellCommand "mkdir -p /etc/azubi"]
                               }
@@ -36,7 +38,7 @@ testFile =  do
       (exists (Symlink "/etc/conf.d/azubi" "/etc/azubi/conf") TestContext) `shouldBe` [
         IfCommand {
             testCommand = BoolCommand "-d /etc/conf.d",
-              thenCommand = [InfoMsg "directory /etc/conf.d exists"],
+              thenCommand = [LogMsg "directory /etc/conf.d exists"],
               elseCommand = [InfoMsg "create direcotory /etc/conf.d"
                             , ShellCommand "mkdir -p /etc/conf.d"]
             }
@@ -48,7 +50,7 @@ testFile =  do
       (exists (Directory "/etc/azubi") TestContext) `shouldBe` [
         IfCommand {
             testCommand = BoolCommand "-d /etc/azubi",
-              thenCommand = [InfoMsg "directory /etc/azubi exists"],
+              thenCommand = [LogMsg "directory /etc/azubi exists"],
               elseCommand = [InfoMsg "create direcotory /etc/azubi"   -- | todo : checken ob es ein file gibt, und stattdessen dann löschen
                             , ShellCommand "mkdir -p /etc/azubi"]
             }
@@ -61,7 +63,7 @@ testFile =  do
             thenCommand = [InfoMsg "/dev/shm/foo already exists"],
             elseCommand = [IfCommand {
                               testCommand = BoolCommand "-d /dev/shm",
-                              thenCommand = [InfoMsg "directory /dev/shm exists"],
+                              thenCommand = [LogMsg "directory /dev/shm exists"],
                               elseCommand = [InfoMsg "create direcotory /dev/shm",
                                              ShellCommand "mkdir -p /dev/shm"]
                               }

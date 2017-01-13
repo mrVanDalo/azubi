@@ -7,8 +7,8 @@ import Azubi.Core.Context
 import Azubi.Core.Revertable
 
 -- | wrap up everything
-azubi  :: (Context a) => a -> [(a -> [Command])] -> [Command]
-azubi con commands =
+azubiConfig  :: (Context a) => a -> [(a -> [Command])] -> [Command]
+azubiConfig con commands =
   concat $  map injectContext commands
   where
     injectContext f = f con
@@ -38,8 +38,8 @@ first ! second = first ++ [( second . toggleRevert ) ]
 
 -- | add a command under condition of being in
 -- | a positive context
-(&?) :: (Revertable a) => [ (a -> [Command]) ] -> (a -> [Command] ) -> [ (a -> [Command])]
-first &? second = first ++ [ check ]
+(&?&) :: (Revertable a) => [ (a -> [Command]) ] -> (a -> [Command] ) -> [ (a -> [Command])]
+first &?& second = first ++ [ check ]
   where check con =
           if (isRevert con)
           then []
@@ -47,9 +47,27 @@ first &? second = first ++ [ check ]
 
 -- | add the opposite command under condition of being in
 -- | a positive context
-(!?) :: (Revertable a) => [ (a -> [Command]) ] -> (a -> [Command] ) -> [ (a -> [Command])]
-first !? second = first ++ [ check ]
+(!?&) :: (Revertable a) => [ (a -> [Command]) ] -> (a -> [Command] ) -> [ (a -> [Command])]
+first !?& second = first ++ [ check ]
   where check con =
           if (isRevert con)
           then []
-          else second (toggleRevert con)
+          else second (setRevert con)
+
+-- | add a command under condition of being in
+-- | a negative context
+(&?!) :: (Revertable a) => [ (a -> [Command]) ] -> (a -> [Command] ) -> [ (a -> [Command])]
+first &?! second = first ++ [ check ]
+  where check con =
+          if (isRevert con)
+          then second (setExectue con)
+          else []
+
+-- | add the opposite command under condition of being in
+-- | a negative context
+(!?!) :: (Revertable a) => [ (a -> [Command]) ] -> (a -> [Command] ) -> [ (a -> [Command])]
+first !?! second = first ++ [ check ]
+  where check con =
+          if (isRevert con)
+          then second con
+          else []

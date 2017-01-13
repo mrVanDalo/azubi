@@ -13,9 +13,13 @@ data SuperUserMethod = Sudo
                      | None
                    deriving(Show)
 
-
+type OutputFile = String
 
 -- | different output which can be produced
-data  RenderContext = BashScript UserContext
+data  RenderContext = BashScript UserContext OutputFile
                     | Dockerfile
                    deriving(Show)
+
+
+
+
