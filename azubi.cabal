@@ -53,6 +53,8 @@ library
   exposed-modules:     Azubi
   other-modules:       Azubi.Commands.File
                      , Azubi.Commands.Install
+                     , Azubi.Commands.Git
+                     , Azubi.Commands.Existance
                      , Azubi.Core.Command
                      , Azubi.Core.Context
                      , Azubi.Core.Provision

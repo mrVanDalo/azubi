@@ -8,6 +8,8 @@ import Commands.TestInstall
 import Commands.TestFile
 import Commands.TestGit
 
+import Render.TestBashScript
+
 -- | tests
 
 main :: IO ()
@@ -16,4 +18,5 @@ main = hspec $ do
   testFile
   testSyntax
   testGit
+  testBashScript
 

@@ -15,6 +15,7 @@ module Azubi(azubiMain
             , exists
             , contains
             , File(..)
+            , Repository(..)
             , azubiLogo
             , run
             ) where
@@ -34,6 +35,7 @@ import Azubi.Render.Warez
 import Azubi.Commands.Install
 import Azubi.Commands.Existance
 import Azubi.Commands.File
+import Azubi.Commands.Git
 import Azubi.Commands.Run
 
 type AzubiConfig = [Command]

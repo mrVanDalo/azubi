@@ -34,7 +34,7 @@ instance Existance File where
   doExists (Symlink path target) con =
     ( doExists ( Directory $ takeDirectory path ) con)
     ++ [ InfoMsg $ "create symlink " ++ path ++ " -> " ++ target
-       , ShellCommand $ "ln -s " ++ target ++ " " ++ path ]
+       , ShellCommand $ "ln -s -f --no-target-directory " ++ target ++ " " ++ path ]
 
   doExists (Directory path) con = [
     IfCommand {

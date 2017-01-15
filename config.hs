@@ -72,6 +72,8 @@ azubiSetup = azubiConfig Gentoo $ []
 -- commands
 -- git
 
+-- | todo : make logfile configurable
+
 
 -- sketch on the syntax
 --

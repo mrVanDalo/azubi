@@ -27,7 +27,8 @@ instance Existance Repository where
                            testCommand = BoolCommand $ "-d " ++ folder
                            , thenCommand = []
                            , elseCommand = (exists (Directory parentFolder) con)
-                                           ++ [ ShellCommand $ unwords $ ["git", "clone"] ++ gitOptions ++ [repo, folder] ]
+                                           ++ [ InfoMsg $ "clone git repository " ++ repo ++ " to folder " ++ folder
+                                              , ShellCommand $ unwords $ ["git", "clone"] ++ gitOptions ++ [repo, folder] ]
                            }]
         }]
     where

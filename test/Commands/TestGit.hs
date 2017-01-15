@@ -29,6 +29,7 @@ testGit = do
                                                           , elseCommand = [InfoMsg "create direcotory ~"
                                                                           ,ShellCommand "mkdir -p ~"]
                                                           }
+                                               ,InfoMsg "clone git repository github.com/me/dotVim to folder ~/.dotVim"
                                                ,ShellCommand "git clone github.com/me/dotVim ~/.dotVim"
                                                ]
                                }
@@ -47,6 +48,7 @@ testGit = do
                                                           , elseCommand = [InfoMsg "create direcotory ~"
                                                                           ,ShellCommand "mkdir -p ~"]
                                                           }
+                                               ,InfoMsg "clone git repository github.com/me/dotVim to folder ~/.dotVim"
                                                ,ShellCommand "git clone --recursive github.com/me/dotVim ~/.dotVim"
                                                ]
                                }
@@ -66,6 +68,7 @@ testGit = do
                                                           , elseCommand = [InfoMsg "create direcotory ~"
                                                                           ,ShellCommand "mkdir -p ~"]
                                                           }
+                                               ,InfoMsg "clone git repository github.com/me/dotVim to folder ~/.dotVim"
                                                ,ShellCommand "git clone github.com/me/dotVim ~/.dotVim"
                                                ]
                                }
