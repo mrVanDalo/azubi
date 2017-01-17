@@ -1,5 +1,7 @@
 # Azubi
 
+![Build Status](https://travis-ci.org/mrVanDalo/azubi.svg?branch=master)](https://travis-ci.org/mrVanDalo/azubi)
+
 is a very simple devops tool, which I'm currently sketching.
 Most likely I'll get bored in some days and leave it as it is.
 
