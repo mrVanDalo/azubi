@@ -2,3 +2,7 @@ language: haskell
 ghc:
     - 7.10
     - 8.0
+branches:
+    only:
+        - master
+        - develop
