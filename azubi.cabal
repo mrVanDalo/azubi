@@ -59,6 +59,7 @@ library
   other-modules:       Azubi.Commands.File
                      , Azubi.Commands.Install
                      , Azubi.Commands.Git
+                     , Azubi.Commands.Run
                      , Azubi.Commands.Existance
                      , Azubi.Core.Command
                      , Azubi.Core.Context
