@@ -13,10 +13,14 @@ name:                azubi
 version:             0.1.0.0
 
 -- A short (one-line) description of the package.
--- synopsis:
+synopsis: 
+synopsis:            A simple DevOps tool which will "reach" the enterprice level.
 
 -- A longer description of the package.
 description:         A simple DevOps tool which will "reach" the enterprice level.
+                     It is basically a Haskell lib which you can use to create
+                     nice scripts that setup you computer, via ssh bashscrip,
+                     Dockerfile, etc
 
 -- URL for the project homepage or repository.
 homepage:            http://azubi.github.com
