@@ -16,6 +16,7 @@ module Azubi( azubiMain
             , contains
             , File(..)
             , Repository(..)
+            , GitOptions(..)
             , azubiLogo
             , run
             ) where

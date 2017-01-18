@@ -2,27 +2,114 @@
 
 [![Build Status](https://travis-ci.org/mrVanDalo/azubi.svg?branch=master)](https://travis-ci.org/mrVanDalo/azubi)
 
-is a very simple devops tool, which I'm currently sketching.
-Most likely I'll get bored in some days and leave it as it is.
+Is a very simple DevOps tool, which will never "reach" enterprise level.
 
-# Goal
+## Goals
 
-Use Haskells awesome type system to create a devop tool like puppet, ansible, salt, chef, ... 
+* Readable -> Haskell
+* Check your rule set before changing your system -> Strong Type-system of Haskell
+* Adaptive, -> can run on all kinds of Linux and it is also planed to run on osx and Windows
+* Lightweight -> No installation (except some basic shell tools) needed on the target host.
 
-## Design
+## Features
 
-It should give you a very simple language to describe system states,
-but will enforce that systemstate only by some doing bash/ssh calls.
-There will be no data of `azubi` left when the call is finished, maybe a log but thats it.
-No Cache, no `/etc/azubi/conf`, only the stuff you want there to be.
+### Different types of Execution
 
-## Executers
+You can 
 
-Planed Executers, which are something like renderers of your configuration file.
+* enforce everything by command line (not yet)
+* create a bash script which you can run for system setup
+* use ssh to setup a target host (not yet)
+* create different configurations for different situations (not yet)
+* export to a Dockerfile (not yet)
+* export to a Bat file (not yet)
 
-* BashScript : will create one big bashscript.
-* SSHClient : will run some ssh calles to another system.
-* Dockerfile : will create a Dockerfile.
+### How to start
+
+Install `azubi` via cabal.
+
+    cabal install azubi
+
+create a file (e.g. `config.hs`) somewhere you like with the content
+
+    #!/usr/bin/env runghc
+    
+    import Azubi
+    
+    main :: IO ()
+    main = azubiMain $ azubiConfig Gentoo $ []
+        & installed "vim"
+
+
+call the script to get a help
+
+    ./config.hs --help
+
+
+call the script to get a bashscript
+
+    ./config.hs --output "my-first-azubi-script.sh"
+
+
+# Syntax
 
 
 
+
+## Commands
+
+Every Command should be revertable.
+
+### installed
+
+#### Package 
+
+install vim if not already done:
+
+    & installed "vim"
+
+uninstall vim if vim is installed:
+
+    ! installed "vim"
+
+### exists
+
+#### Files
+
+create files, directories and symlinks : 
+
+    & exists (File "~/.vimrc")
+    & exists (Directory "~/.vim")
+    & exists (Symlink ".bashrc" "~/.bashrc.d/bashrc")
+    
+delete files files, directories and symlinks : 
+
+    & exists (File "~/.vimrc")
+    & exists (Directory "~/.vim")
+    & exists (Symlink ".bashrc" "~/.bashrc.d/bashrc")
+
+#### Git projects
+
+pull git repository if not pressent:
+
+    & exists (Git "git@github.com:mrVanDalo/azubi.git" "~/develop/azubi" [Branch "develop"])
+
+you can give it options
+
+* Branch "branchname"
+* Recursive
+* more to follow ... 
+
+## Logic Components
+
+
+### `requires`
+
+
+### `submodule`
+
+
+### Combiner
+
+#### &, !
+#### !?&,!?!, &?&, &?!
