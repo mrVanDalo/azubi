@@ -16,7 +16,7 @@ version:             0.1.0.0
 -- synopsis:
 
 -- A longer description of the package.
--- description:
+description:         A simple DevOps tool which will "reach" the enterprice level.
 
 -- URL for the project homepage or repository.
 homepage:            http://azubi.github.com
