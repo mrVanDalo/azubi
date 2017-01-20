@@ -53,9 +53,6 @@ call the script to get a bashscript
 
 # Syntax
 
-
-
-
 ## Commands
 
 Every Command should be revertable.
@@ -96,20 +93,127 @@ pull git repository if not pressent:
 
 you can give it options
 
-* Branch "branchname"
-* Recursive
+* *Branch "branchname"*
+* *Recursive*
 * more to follow ... 
 
+
 ## Logic Components
-
-
-### `requires`
-
-
-### `submodule`
 
 
 ### Combiner
 
 #### &, !
+
+Almost every command should be revertable. So you have 2 states
+
+* do it -> `&`
+* undo it -> `!`
+
+this ensures the file `/tmp/foo` exist
+
+        & exists (File "/tmp/foo")
+
+and this ensures the file does not exist
+
+        ! exists (File "/tmp/foo")
+
+In most cases it happens what you expect, but sometimes it's not so obvious so we it is written right next to the command.
+(e.g.:) `! exists (File "/tmp/foo")` will delete a file `/tmp/foo` but won't delete a directory `/tmp/foo`
+
 #### !?&,!?!, &?&, &?!
+
+They are special cases of `!` and `&` and should be read like `X if in context Y` -> `X?Y` and start only to make 
+sense in combination of submodules (see later).
+
+* `&?&` is `&` if you are in a `do it` context.
+* `!?&` is `!` if you are in a `do it` context.
+* `&?!` is `&` if you are in a `undo it` context.
+* `!?!` is `!` if you are in a `undo it` context.
+
+for example 
+
+    & (submodule $ []
+      &?& contains (File "/dev/shm/test") ["text"]
+      & exists (Symlink  "~/.vimrc" "/dev/shm/test")
+    )
+
+would be reverted like this
+
+    ! (submodule $ []
+      &?& contains (File "/dev/shm/test") ["text"]
+      & exists (Symlink  "~/.vimrc" "/dev/shm/test")
+    )
+
+which is similar to 
+
+    ! exists (Symlink  "~/.vimrc" "/dev/shm/test")
+    
+
+### `submodule`
+
+to group a bunch of command together to on command you can negate all at once if you want.
+But you can create a much more sophisticated combination of commands using
+`!?&`,`!?!`,`&?&` and `&?!`.
+
+for example 
+
+    & (submodule $ []
+      & contains (File "/dev/shm/test") ["text"]
+      & exists (Symlink  "~/.vimrc" "/dev/shm/test")
+    )
+
+is equivalent to
+
+    & contains (File "/dev/shm/test") ["text"]
+    & exists (Symlink  "~/.vimrc" "/dev/shm/test")
+
+but could be reverted like this
+
+    ! (submodule $ []
+      & contains (File "/dev/shm/test") ["text"]
+      & exists (Symlink  "~/.vimrc" "/dev/shm/test")
+    )
+
+which is equivalent to
+
+    ! contains (File "/dev/shm/test") ["text"]
+    ! exists (Symlink  "~/.vimrc" "/dev/shm/test")
+
+### `requires`
+
+is used to create dependencies like "first do *this*, and when everything is fine do *this*".
+They make most sense with submodules
+
+    & ((submodule $ []
+       & exists (Symlink "~/.vim"   "~/.dot_vim")
+       & exists (Symlink "~/.vimrc" "~/.vim/vimrc")
+      ) 
+      `requires` 
+      (submodule $ []
+       & exists (Git "git@github.com/myrepo/dot_vim.git" "~/.dot_vim" [Recursive])
+      ))
+      
+If `requires` is called in a reverting context (e.g. using `!`) it will also create a dependency 
+but twisted and the body will be reverted as well.
+
+     ! ((submodule $ []
+       & exists (Symlink "~/.vim"   "~/.dot_vim")
+       & exists (Symlink "~/.vimrc" "~/.vim/vimrc")
+      ) 
+      `requires` 
+      (submodule $ []
+       & exists (Git "git@github.com/myrepo/dot_vim.git" "~/.dot_vim" [Recursive])
+      ))
+    
+is equivalent to
+
+     & ((submodule $ []
+       ! exists (Git "git@github.com/myrepo/dot_vim.git" "~/.dot_vim" [Recursive])
+      )
+      `requires` 
+      (submodule $ []
+       ! exists (Symlink "~/.vim"   "~/.dot_vim")
+       ! exists (Symlink "~/.vimrc" "~/.vim/vimrc")
+      ))
+
