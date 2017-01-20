@@ -52,7 +52,10 @@ build-type:          Simple
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
-tested-With:         GHC == 7.10.2
+tested-With:         GHC == 7.10.3
+                   , GHC == 7.10.2
+                   , GHC == 7.10.1
+                   , GHC == 8.0.1
 
 library
   exposed-modules:     Azubi

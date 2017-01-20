@@ -15,6 +15,11 @@ import TestContext
 testFunction :: TestContext -> [ Command ]
 testFunction c = [ ShellCommand $ "got " ++ (show c) ]
 
+testFunctionA :: TestContext -> [ Command ]
+testFunctionA c = [ ShellCommand $ "funA " ++ (show c) ]
+
+testFunctionB :: TestContext -> [ Command ]
+testFunctionB c = [ ShellCommand $ "funB " ++ (show c) ]
 
 testSyntax :: SpecWith ()
 testSyntax =  do
@@ -84,5 +89,9 @@ testSyntax =  do
 
   describe "requires" $ do
     it "returns a Dependency Command" $ do
-      (testFunction `requires` testFunction ) TestContext `shouldBe`
-        [Dependency [ShellCommand "got TestContext"] [ShellCommand "got TestContext"]]
+      (testFunctionA `requires` testFunctionB ) TestContext `shouldBe`
+        [Dependency [ShellCommand "funA TestContext"] [ShellCommand "funB TestContext"]]
+
+    it "returns the reverted Dependency Command in reverted Context" $ do
+      (testFunctionA `requires` testFunctionB ) TestContextReverted `shouldBe`
+        [Dependency [ShellCommand "funB TestContextReverted"] [ShellCommand "funA TestContextReverted"]]

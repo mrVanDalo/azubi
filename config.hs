@@ -6,31 +6,6 @@ main :: IO ()
 main = azubiMain azubiSetup
 
 
-
--- | example
-myConfig :: AzubiConfig
-myConfig = azubiConfig Gentoo $ []
-      & installed "vim"
-      ! installed "salt"
-      & (submodule $ []
-         ! exists (Directory "/dev/shm/azubi-test")
-         & contains (File "/dev/shm/azubi/contains") [ "this is a azubi test-line : " ++ (show i) | i <- [1,2..10]]
-         & exists (Symlink "/dev/shm/azubi-link" "/dev/shm/azubi/contains")
-        )
-      ! (submodule $ []
-         & installed "sub-emacs"
-         & installed "sub-vim"
-        )
-      ! exists (Directory "/dev/shm/Downloads")
-      ! exists (Directory "/dev/shm/Documents")
-      & ((submodule $ []
-          & contains (File "/etc/vim/config") ["# config"]
-         ) `requires` (submodule $ []
-                       & installed "vim"
-                      ))
-      & installed "vim"
-      ! exists (File "/dev/shm")
-
 azubiSetup :: AzubiConfig
 azubiSetup = azubiConfig Gentoo $ []
   & contains (File "~/azubi-config/azubi-config.cabal") [ "name:                azubi-config"
@@ -66,6 +41,30 @@ azubiSetup = azubiConfig Gentoo $ []
                                                , "    cabal run && bash azubi.sh"]
 
 
+-- | example
+--
+-- myConfig :: AzubiConfig
+-- myConfig = azubiConfig Gentoo $ []
+--       & installed "vim"
+--       ! installed "salt"
+--       & (submodule $ []
+--          ! exists (Directory "/dev/shm/azubi-test")
+--          & contains (File "/dev/shm/azubi/contains") [ "this is a azubi test-line : " ++ (show i) | i <- [1,2..10]]
+--          & exists (Symlink "/dev/shm/azubi-link" "/dev/shm/azubi/contains")
+--         )
+--       ! (submodule $ []
+--          & installed "sub-emacs"
+--          & installed "sub-vim"
+--         )
+--       ! exists (Directory "/dev/shm/Downloads")
+--       ! exists (Directory "/dev/shm/Documents")
+--       & ((submodule $ []
+--           & contains (File "/etc/vim/config") ["# config"]
+--          ) `requires` (submodule $ []
+--                        & installed "vim"
+--                       ))
+--       & installed "vim"
+--       ! exists (File "/dev/shm")
 
 -- next :
 -- ------

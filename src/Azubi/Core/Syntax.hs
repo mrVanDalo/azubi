@@ -20,8 +20,13 @@ submodule commands context =
   where
     injectContext f = f context
 
-requires :: (Context a) => (a -> [Command]) -> (a -> [Command])  -> a -> [Command]
+requires :: (Context a, Revertable a) => (a -> [Command]) -> (a -> [Command])  -> a -> [Command]
 first `requires` sec = \context ->
+                         if (isRevert context)
+                         then
+                          [ Dependency { body=(sec context)
+                                       , dependency=(first context)}]
+                         else
                           [ Dependency { body=(first context)
                                        , dependency=(sec context)}]
 
