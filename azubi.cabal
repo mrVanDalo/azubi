@@ -38,7 +38,9 @@ author:              Ingolf Wagner
 maintainer:          azubi@ingolf-wagner.de
 
 -- A copyright notice.
--- copyright:           
+-- copyright:
+
+stability:           Unstable
 
 category:            System
 
