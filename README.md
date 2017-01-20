@@ -1,6 +1,8 @@
 # Azubi
 
 [![Build Status](https://travis-ci.org/mrVanDalo/azubi.svg?branch=master)](https://travis-ci.org/mrVanDalo/azubi)
+[![Version](https://img.shields.io/badge/version-0.1.0.1-green.svg)](https://github.com/mrVanDalo/azubi/releases/tag/0.1.0.1)
+[![License](https://img.shields.io/badge/license-gpl-green.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 Is a very simple DevOps tool, which will never "reach" enterprise level.
 
@@ -97,6 +99,16 @@ you can give it options
 * *Recursive*
 * more to follow ... 
 
+### contains
+
+To set the content of a file.
+
+    & contains (File "~/.vimrc") [ "content of the file"
+                                 , "should be here"
+                                 , "in this string array" ]
+
+works also with `Symlinks`.
+
 
 ## Logic Components
 
@@ -148,9 +160,9 @@ would be reverted like this
 which is similar to 
 
     ! exists (Symlink  "~/.vimrc" "/dev/shm/test")
-    
 
-### `submodule`
+
+### submodule
 
 to group a bunch of command together to on command you can negate all at once if you want.
 But you can create a much more sophisticated combination of commands using
@@ -180,7 +192,7 @@ which is equivalent to
     ! contains (File "/dev/shm/test") ["text"]
     ! exists (Symlink  "~/.vimrc" "/dev/shm/test")
 
-### `requires`
+### requires
 
 is used to create dependencies like "first do *this*, and when everything is fine do *this*".
 They make most sense with submodules
@@ -188,30 +200,30 @@ They make most sense with submodules
     & ((submodule $ []
        & exists (Symlink "~/.vim"   "~/.dot_vim")
        & exists (Symlink "~/.vimrc" "~/.vim/vimrc")
-      ) 
-      `requires` 
+      )
+      `requires`
       (submodule $ []
        & exists (Git "git@github.com/myrepo/dot_vim.git" "~/.dot_vim" [Recursive])
       ))
-      
+
 If `requires` is called in a reverting context (e.g. using `!`) it will also create a dependency 
 but twisted and the body will be reverted as well.
 
      ! ((submodule $ []
        & exists (Symlink "~/.vim"   "~/.dot_vim")
        & exists (Symlink "~/.vimrc" "~/.vim/vimrc")
-      ) 
-      `requires` 
+      )
+      `requires`
       (submodule $ []
        & exists (Git "git@github.com/myrepo/dot_vim.git" "~/.dot_vim" [Recursive])
       ))
-    
+
 is equivalent to
 
      & ((submodule $ []
        ! exists (Git "git@github.com/myrepo/dot_vim.git" "~/.dot_vim" [Recursive])
       )
-      `requires` 
+      `requires`
       (submodule $ []
        ! exists (Symlink "~/.vim"   "~/.dot_vim")
        ! exists (Symlink "~/.vimrc" "~/.vim/vimrc")
