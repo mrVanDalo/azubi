@@ -58,26 +58,56 @@ tested-With:         GHC == 7.10.3
                    , GHC == 7.10.1
                    , GHC == 8.0.1
 
-library
-  exposed-modules:     Azubi
-  other-modules:       Azubi.Commands.File
-                     , Azubi.Commands.Install
-                     , Azubi.Commands.Git
-                     , Azubi.Commands.Run
-                     , Azubi.Commands.Existance
-                     , Azubi.Core.Command
-                     , Azubi.Core.Context
-                     , Azubi.Core.Provision
-                     , Azubi.Core.Revertable
-                     , Azubi.Core.Syntax
-                     , Azubi.Render.BashScript
-                     , Azubi.Render.Warez
-                     , Azubi.Systems.Gentoo
+executable azubi
+  main-is:             main.hs
+
   hs-source-dirs:      src
+
   build-depends:       base >=4.7 && < 5
                      , filepath >=1 && < 2
                      , options >= 1.2 && < 2
+                     , process >=1.4 && < 2
+                     , directory >= 1.3  && < 2
+                     , Diff >= 0.3 
+                     , unix >= 2.7
   default-language:    Haskell2010
+  ghc-options:        -Werror
+                      -fwarn-incomplete-patterns
+
+test-suite test
+  build-depends:       base       >= 4.7 && < 5
+                     , filepath   >=1 && < 2
+                     , hspec      >= 2.3
+
+  type:                exitcode-stdio-1.0
+  main-is:             Test.hs
+  hs-source-dirs:      src test
+  default-language:    Haskell2010
+  ghc-options:        -Wall
+  buildable:           True
+
+
+-- library
+--   exposed-modules:     Azubi
+--   other-modules:       Azubi.Commands.File
+--                      , Azubi.Commands.Install
+--                      , Azubi.Commands.Git
+--                      , Azubi.Commands.Run
+--                      , Azubi.Commands.Existance
+--                      , Azubi.Core.Command
+--                      , Azubi.Core.Context
+--                      , Azubi.Core.Provision
+--                      , Azubi.Core.Revertable
+--                      , Azubi.Core.Syntax
+--                      , Azubi.Render.BashScript
+--                      , Azubi.Render.Warez
+--                      , Azubi.Systems.Gentoo
+--   hs-source-dirs:      oldsrc
+--   build-depends:       base >=4.7 && < 5
+--                      , filepath >=1 && < 2
+--                      , options >= 1.2 && < 2
+--   default-language:    Haskell2010
+
 
 source-repository head
   type:              git
