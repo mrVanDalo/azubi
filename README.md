@@ -1,5 +1,7 @@
 # Azubi
 
+[![Join the chat at https://gitter.im/azubi-configuration/Lobby](https://badges.gitter.im/azubi-configuration/Lobby.svg)](https://gitter.im/azubi-configuration/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Build Status](https://travis-ci.org/mrVanDalo/azubi.svg?branch=master)](https://travis-ci.org/mrVanDalo/azubi)
 
 Is a very simple DevOps tool, which will never "reach" enterprise level.
