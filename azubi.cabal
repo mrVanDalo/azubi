@@ -63,6 +63,12 @@ executable azubi
 
   hs-source-dirs:      src
 
+  other-modules:       Azubi.Model
+                       Azubi.Boot
+                       Azubi.StateExecutor
+                       Azubi.StateExecutors.LocalUnixStateExecutor
+                       Azubi.Syntax
+
   build-depends:       base >=4.7 && < 5
                      , filepath >=1 && < 2
                      , options >= 1.2 && < 2

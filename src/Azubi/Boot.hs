@@ -17,7 +17,7 @@ module Azubi.Boot(defaultMain) where
 
 import Options
 import Azubi.Model
-import Azubi.StateExecuter
+import Azubi.StateExecutor
 import Azubi.StateExecutors.LocalUnixStateExecutor
 
 

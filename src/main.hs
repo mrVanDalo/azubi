@@ -1,7 +1,7 @@
 
 import Azubi.Model
 import Azubi.Boot
-import Azubi.StateExecuter
+import Azubi.StateExecutor
 import Azubi.Syntax
 
 

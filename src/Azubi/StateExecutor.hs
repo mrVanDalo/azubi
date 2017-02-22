@@ -1,43 +1,74 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module Azubi.StateExecuter where
+
+{-|
+
+Module      : Azubi.StateExecutor
+Description : Core low level State evaluation and enforcement
+Copyright   : (c) Ingolf Wagner, 2017
+License     : GPL-3
+Maintainer  : azubi@ingolf-wagner.de
+Stability   : experimental
+Portability : POSIX
+
+'State' must be evaluated and enforced.
+This is done by a 'StateExecutor'.
+
+-}
+module Azubi.StateExecutor where
 
 import Azubi.Model
 
+{-|
 
+should evaluate and enforce given 'State's
 
-
-
--- | core main executor
-class StateExecuter a where
+-}
+class StateExecutor a where
   execute :: a -> [State] -> IO ()
 
--- | script executor class
--- todo : write one
+{-|
+
+should create a script.
+
+todo : write one
+
+-}
 class ScriptStateExecuter a where
   header :: a -> IO ()
   footer :: a -> IO ()
   body   :: a -> [State] -> IO ()
 
+-- | wrapper type to prove Haskell
+-- there will be now looping.
 newtype ScriptExecute a = ScriptExecute a
 
-instance ScriptStateExecuter a => StateExecuter (ScriptExecute a) where
+instance ScriptStateExecuter a => StateExecutor (ScriptExecute a) where
   execute (ScriptExecute context) states = do
     header context
     body context states
     footer context
 
 
--- | local executor class
+
+
+
+
+{-|
+
+should /run/ the states on the local machine.
+
+-}
 class LocalStateExecute a where
   setup    :: a -> IO ()
   run      :: a -> State -> IO StateResult
   tearDown :: a -> [StateResult] -> IO ()
 
-
+-- | wrapper type to prove Haskell
+-- there will be now looping.
 newtype LocalContext a = LocalContext a
 
-instance LocalStateExecute a => StateExecuter (LocalContext a) where
+instance LocalStateExecute a => StateExecutor (LocalContext a) where
 
   execute (LocalContext context) states = do
     setup context

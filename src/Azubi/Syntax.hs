@@ -1,5 +1,17 @@
+{-|
 
+Module      : Azubi.Syntax
+Description : Basic Azubi syntax to combine 'State's
+Copyright   : (c) Ingolf Wagner, 2017
+License     : GPL-3
+Maintainer  : azubi@ingolf-wagner.de
+Stability   : experimental
+Portability : POSIX
 
+Functions to create a readable and typesafe
+language, to describe system states.
+
+-}
 module Azubi.Syntax where
 
 import Azubi.Model
@@ -46,11 +58,27 @@ will be ignored.
 submodule :: [State] -> State
 submodule states = States [] states Nothing
 
+
+{-|
+
+make sure a folder exists
+
+-}
 folderExists :: Path -> State
 folderExists path = State [FolderExists path] [CreateFolder path] Nothing
 
 
+{-|
 
+'State' combinator.
+
+@
+[]
+& folderExists "\/tmp\/foo"
+& folderExists "\/tmp\/bar"
+@
+
+-}
 (&) :: [State] -> State -> [State]
 states & state = states ++ [state]
 

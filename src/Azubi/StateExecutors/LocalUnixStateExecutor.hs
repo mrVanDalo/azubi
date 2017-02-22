@@ -1,9 +1,22 @@
 
+{-|
 
-module Azubi.StateExecutors.LocalUnixStateExecutor where
+Module      : Azubi.StateExecutors.LocalUnixStateExecutor
+Description : 'StateExecutor' for Unix machines
+Copyright   : (c) Ingolf Wagner, 2017
+License     : GPL-3
+Maintainer  : azubi@ingolf-wagner.de
+Stability   : experimental
+Portability : POSIX
+
+Run 'State's on a Unix machine.
+
+-}
+
+module Azubi.StateExecutors.LocalUnixStateExecutor ( UnixSystem(..) ) where
 
 import Azubi.Model
-import Azubi.StateExecuter
+import Azubi.StateExecutor
 
 import System.Directory
 import System.FilePath
@@ -16,6 +29,15 @@ import System.Posix.Files (createSymbolicLink)
 import Data.Algorithm.Diff
 import Data.Algorithm.DiffOutput
 
+
+
+{-|
+
+Unix System like Linux, AIX or OSX
+
+<https://en.wikipedia.org/wiki/Unix>
+
+-}
 data UnixSystem = UnixSystem
 
 instance LocalStateExecute UnixSystem where
