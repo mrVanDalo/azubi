@@ -69,6 +69,7 @@ executable azubi
                        Azubi.StateExecutors.LocalUnixStateExecutor
                        Azubi.Syntax
                        Azubi.Installable
+                       Azubi.Runable
 
   build-depends:       base >=4.7 && < 5
                      , filepath >=1 && < 2
