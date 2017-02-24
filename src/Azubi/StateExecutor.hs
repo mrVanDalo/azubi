@@ -61,7 +61,7 @@ should /run/ the states on the local machine.
 -}
 class LocalStateExecute a where
   setup    :: a -> IO ()
-  run      :: a -> State -> IO StateResult
+  executeState :: a -> State -> IO StateResult
   tearDown :: a -> [StateResult] -> IO ()
 
 -- | wrapper type to prove Haskell
@@ -78,7 +78,7 @@ instance LocalStateExecute a => StateExecutor (LocalContext a) where
       collectStateResults :: [State] -> IO [StateResult]
       collectStateResults [] = return []
       collectStateResults (x:xs) = do
-        result <- run context x
+        result <- executeState context x
         restResults <- collectStateResults xs
         return $ result:restResults
 

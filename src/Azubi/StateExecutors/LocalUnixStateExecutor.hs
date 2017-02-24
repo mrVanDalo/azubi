@@ -45,7 +45,7 @@ instance LocalStateExecute UnixSystem where
   tearDown UnixSystem stateResults = return ()
 
 
-  run UnixSystem (State checks commands comment) = do
+  executeState UnixSystem (State checks commands comment) = do
     runComment' comment
     checkResult <- collectCheckResults checks
     case checkResult of
@@ -56,14 +56,14 @@ instance LocalStateExecute UnixSystem where
           Success -> return Fulfilled
           Failure -> return Unfulfilled
 
-  run UnixSystem (States states comment) = do
+  executeState UnixSystem (States states comment) = do
     runComment' comment
     collectStateResults states
     where
       collectStateResults :: [State] -> IO StateResult
       collectStateResults [] = return Fulfilled
       collectStateResults (x:xs) = do
-        result <- run UnixSystem x
+        result <- executeState UnixSystem x
         case result of
           Unfulfilled -> return Unfulfilled
           Fulfilled -> collectStateResults xs
@@ -158,13 +158,13 @@ runCheck' (Check command args comment) = do
     ExitSuccess -> return Yes
     _ -> return No
 
-runCheck' (NotCheck command args comment) = do
-  runComment' comment
-  result <- runProcess' [command] args
+runCheck' (Not check ) = do
+  result <- runCheck' check
   case result of
-    ExitSuccess -> return No
-    _ -> return Yes
+    No -> return Yes
+    Yes  -> return No
 
+runCheck' AlwaysYes = return Yes
 
 
 data FileType = IsFile

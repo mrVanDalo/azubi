@@ -31,7 +31,7 @@ module Azubi.Model where
 
 type Path = String
 type Target = String
-type Arguments = String
+type Argument = String
 type Comment = String
 
 {-|
@@ -46,7 +46,7 @@ it will create a 'CommandResult'.
 @ command -> exit code -> 'CommandResult' @
 
 -}
-data Command = Run String [Arguments] (Maybe Comment)
+data Command = Run String [Argument] (Maybe Comment)
              | FileContent Path [String]
              | CreateSymlink Path Target
              | CreateFolder Path
@@ -90,9 +90,10 @@ _ -> No
 @
 
 -}
-  Check String [Arguments] (Maybe Comment)
-  -- | Opposite result of 'Check'
-  | NotCheck String [Arguments] (Maybe Comment)
+  Check String [Argument] (Maybe Comment)
+  | AlwaysYes
+  -- | Opposite result of a 'Check'
+  | Not Check
   -- | Check if 'Path' has content
   | HasFileContent Path [String]
   -- | Check if a Symbolic link exists to a specific target

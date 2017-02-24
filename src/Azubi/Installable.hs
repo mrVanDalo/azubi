@@ -14,6 +14,7 @@ To install software on your computer.
 module Azubi.Installable where
 
 import Azubi.Model
+import Azubi.Runable
 
 class Installable a where
 
@@ -66,7 +67,7 @@ instance Updatable Ebuild where
   uptodate (Ebuild package) = States
                               [ installed (Ebuild package)
                                 , State
-                                  [NotCheck "eix" ["--upgrade-", "--nocolor",  package] Nothing]
+                                  [Not $ Check "eix" ["--upgrade-", "--nocolor",  package] Nothing]
                                   [Run "emerge" [package] (Just $ "upgrade " ++ package)]
                                   Nothing
                               ]
@@ -98,5 +99,14 @@ instance Installable Git where
                                       , path]
                                       (Just $ "cloning " ++ repository ++ " to " ++ path)]
                                     Nothing
+
+instance Updatable Git where
+
+  uptodate (Git repo path) =
+    States
+    [ installed (Git repo path )
+    , run (Always "git" ["--work-tree=" ++ path, "pull"])
+    ]
+    Nothing
 
 

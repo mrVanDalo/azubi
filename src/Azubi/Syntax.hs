@@ -68,6 +68,8 @@ folderExists :: Path -> State
 folderExists path = State [FolderExists path] [CreateFolder path] Nothing
 
 
+
+
 {-|
 
 'State' combinator.
