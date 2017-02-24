@@ -56,12 +56,9 @@ instance LocalStateExecute UnixSystem where
           Success -> return Fulfilled
           Failure -> return Unfulfilled
 
-  run UnixSystem (States checks states comment) = do
+  run UnixSystem (States states comment) = do
     runComment' comment
-    checkResult <- collectCheckResults checks
-    case checkResult of
-      No -> collectStateResults states
-      Yes -> return Fulfilled
+    collectStateResults states
     where
       collectStateResults :: [State] -> IO StateResult
       collectStateResults [] = return Fulfilled
@@ -110,6 +107,7 @@ runCommand' (CreateSymlink path target) = do
   return Success
 
 runCommand' (Run command arguments comment) = do
+  runComment' comment
   result <- runProcess' [command] arguments
   case result of
     ExitSuccess -> return Success
@@ -160,6 +158,13 @@ runCheck' (Check command args comment) = do
     ExitSuccess -> return Yes
     _ -> return No
 
+runCheck' (NotCheck command args comment) = do
+  runComment' comment
+  result <- runProcess' [command] args
+  case result of
+    ExitSuccess -> return No
+    _ -> return Yes
+
 
 
 data FileType = IsFile
@@ -193,6 +198,7 @@ runProcess' :: [String] -> [String] -> IO ExitCode
 runProcess' command args =  do
   -- todo : pipe to /dev/null
   (_, _, _, checkHandle ) <- createProcess (shell $ unwords $ command ++ args )
+  -- todo : the comment is ignored
   waitForProcess checkHandle
 
 

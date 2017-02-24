@@ -30,6 +30,8 @@ branches:
     only:
       - master
       - develop
+      - /^feature.*$/
+      - /^release.*$/
 
 before_install:
  - unset CC

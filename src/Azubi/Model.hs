@@ -79,11 +79,27 @@ check -> exit code -> success/failure
 @
 
 -}
-data Check = Check String [Arguments] (Maybe Comment)
-           | HasFileContent Path [String]
-           | SymlinkExists Path Target
-           | FolderExists Path
-             deriving (Show, Eq)
+data Check =
+  {-|
+
+Check if command returns exit status
+
+@
+0 -> Yes
+_ -> No
+@
+
+-}
+  Check String [Arguments] (Maybe Comment)
+  -- | Opposite result of 'Check'
+  | NotCheck String [Arguments] (Maybe Comment)
+  -- | Check if 'Path' has content
+  | HasFileContent Path [String]
+  -- | Check if a Symbolic link exists to a specific target
+  | SymlinkExists Path Target
+  -- | Check if a folder exists
+  | FolderExists Path
+           deriving (Show, Eq)
 
 {-|
 
@@ -121,7 +137,7 @@ data State =
   -- | To create depended states
   -- which should stop being executed
   -- when a previous state fails
-  | States [Check] [State] (Maybe Comment)
+  | States [State] (Maybe Comment)
            deriving (Show, Eq)
 
 

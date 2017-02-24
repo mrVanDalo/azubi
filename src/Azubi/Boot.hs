@@ -1,17 +1,17 @@
-
-
 {-|
-   Module      : Azubi.Boot
-   Description : Functions to create an Azubi Programm
-   Copyright   : (c) Ingolf Wagner, 2017
-   License     : GPL-3
-   Maintainer  : azubi@ingolf-wagner.de
-   Stability   : experimental
-   Portability : POSIX
 
-   delivers functions you need for starting the
-   whole azubi process and parsing options from
-   the command line.
+Module      : Azubi.Boot
+Description : Functions to create an Azubi Programm
+Copyright   : (c) Ingolf Wagner, 2017
+License     : GPL-3
+Maintainer  : azubi@ingolf-wagner.de
+Stability   : experimental
+Portability : POSIX
+
+delivers functions you need for starting the
+whole azubi process and parsing options from
+the command line.
+
 -}
 module Azubi.Boot(defaultMain) where
 
