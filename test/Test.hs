@@ -1,22 +1,18 @@
 
-
 import Test.Hspec
 
-import Core.TestSyntax
-
-import Commands.TestInstall
-import Commands.TestFile
-import Commands.TestGit
-
-import Render.TestBashScript
-
--- | tests
+import Azubi.Syntax
+import Azubi.Core.Model
 
 main :: IO ()
 main = hspec $ do
-  testInstall
-  testFile
-  testSyntax
-  testGit
-  testBashScript
+  describe "requires" $ do
+    it "should be the same as submoulde for 2 arguments" $ do
+       (stateA `requires` stateB) `shouldBe` (submodule [stateB, stateA])
 
+
+
+stateA :: State
+stateA = State [] [Run "echo" ["you"] Nothing] Nothing
+stateB :: State
+stateB = State [] [Run "echo" ["me"] Nothing] Nothing
