@@ -1,7 +1,7 @@
 # Azubi
 
 [![Build Status](https://travis-ci.org/mrVanDalo/azubi.svg?branch=master)](https://travis-ci.org/mrVanDalo/azubi)
-[![Version](https://img.shields.io/badge/version-0.1.0.1-green.svg)](https://github.com/mrVanDalo/azubi/releases/tag/0.1.0.1)
+[![Version](https://img.shields.io/badge/version-0.2.0.0-green.svg)](https://github.com/mrVanDalo/azubi/releases/tag/0.1.0.1)
 [![License](https://img.shields.io/badge/license-gpl-green.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 [![Join the chat at https://gitter.im/azubi-configuration/Lobby](https://badges.gitter.im/azubi-configuration/Lobby.svg)](https://gitter.im/azubi-configuration/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
