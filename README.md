@@ -30,10 +30,10 @@ create a file (e.g. `config.hs`) somewhere you like with the content
     main :: IO ()
     main = azubiMain $ []
            & installed (Ebuild "vim")
-           & uptodate (Git "git@github.com:mrVanDalo\/azubi.git" "\/dev\/shm\/azubi")
-           & installed (Git "git@github.com:mrVanDalo\/azubi-config.git" "\/dev\/shm\/azubi-config")
+           & uptodate (Git "git@github.com:mrVanDalo/azubi.git" "/dev/shm/azubi")
+           & installed (Git "git@github.com:mrVanDalo/azubi-config.git" "/dev/shm/azubi-config")
            & run (Always "touch" ["/dev/shm/run.test"])
-           & link "\/dev\/shm\/azubi.link" "\/dev\/shm\/azubi"
+           & link "/dev/shm/azubi.link" "/dev/shm/azubi"
 
 
 call the script to get a help
