@@ -39,3 +39,8 @@ create a file (e.g. `config.hs`) somewhere you like with the content
 call the script to get a help
 
     ./config.hs --help
+
+
+## Links
+
+* [Hackage Documentation](http://hackage.haskell.org/package/azubi)
