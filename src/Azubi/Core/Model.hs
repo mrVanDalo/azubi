@@ -1,7 +1,7 @@
 
 {-|
 
-Module      : Azubi.Model
+Module      : Azubi.Core.Model
 Description : Core low level Model of Azubi
 Copyright   : (c) Ingolf Wagner, 2017
 License     : GPL-3
@@ -26,7 +26,7 @@ can be run on different setups.
 * run over SSH on another computer
 
 -}
-module Azubi.Model where
+module Azubi.Core.Model where
 
 
 type Path = String
@@ -50,6 +50,7 @@ data Command = Run String [Argument] (Maybe Comment)
              | FileContent Path [String]
              | CreateSymlink Path Target
              | CreateFolder Path
+             | Remove Path
              deriving (Show, Eq)
 
 
@@ -100,6 +101,8 @@ _ -> No
   | SymlinkExists Path Target
   -- | Check if a folder exists
   | FolderExists Path
+  -- | Check if something exists at path
+  | DoesExist Path
            deriving (Show, Eq)
 
 {-|
@@ -138,7 +141,7 @@ data State =
   -- | To create depended states
   -- which should stop being executed
   -- when a previous state fails
-  | States [State] (Maybe Comment)
+  | States [Check] [State] (Maybe Comment)
            deriving (Show, Eq)
 
 

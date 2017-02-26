@@ -14,7 +14,7 @@ language, to describe system states.
 -}
 module Azubi.Syntax where
 
-import Azubi.Model
+import Azubi.Core.Model
 
 
 {-|
@@ -44,7 +44,7 @@ stateA `requires` stateB == 'submodule' [stateB, stateA]
 
 -}
 requires :: State -> State -> State
-stateA  `requires` stateB = States [stateB, stateA] Nothing
+stateA  `requires` stateB = States [AlwaysYes] [stateB, stateA] Nothing
 
 {-|
 
@@ -56,7 +56,7 @@ will be ignored.
 
 -}
 submodule :: [State] -> State
-submodule states = States states Nothing
+submodule states = States [AlwaysYes] states Nothing
 
 
 {-|
@@ -67,8 +67,27 @@ make sure a folder exists
 folderExists :: Path -> State
 folderExists path = State [FolderExists path] [CreateFolder path] Nothing
 
+{-|
 
+ensure there is a link file -> target
 
+example:
+
+@
+link "~\/file" "~\/target"
+@
+
+will create a link at @~\/file\/@ pointing to @~\/target\/@
+
+-}
+link :: Path -> Path -> State
+link path target =
+  States
+  [ SymlinkExists path target ]
+  [ State [Not $ DoesExist path] [Remove path] Nothing
+  , State [Not AlwaysYes] [CreateSymlink path target] Nothing
+  ]
+  (Just $ "link " ++ path ++ " to " ++ target)
 
 {-|
 

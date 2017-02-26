@@ -1,6 +1,6 @@
 {-|
 
-Module      : Azubi.Boot
+Module      : Azubi.Core.Boot
 Description : Functions to create an Azubi Programm
 Copyright   : (c) Ingolf Wagner, 2017
 License     : GPL-3
@@ -13,41 +13,43 @@ whole azubi process and parsing options from
 the command line.
 
 -}
-module Azubi.Boot(defaultMain) where
+module Azubi.Core.Boot where
 
 import Options
-import Azubi.Model
-import Azubi.StateExecutor
-import Azubi.StateExecutors.LocalUnixStateExecutor
+import Azubi.Core.Model
+import Azubi.Core.StateExecutor
+import Azubi.Core.StateExecutors.LocalUnixStateExecutor
 
 
 {-|
   The function you should use to get you commands running.
 -}
-defaultMain :: [State] -> IO ()
-defaultMain states = do
+azubiMain :: [State] -> IO ()
+azubiMain states = do
   context <- runCommand extractConfiguration
   execute (config context) states
   where
-    -- todo : also do dummy calls here
     config context = check (optSystem context)
       where
-        check Gentoo = (LocalContext UnixSystem)
-        check Debian = (LocalContext UnixSystem)
-        check Ubuntu = (LocalContext UnixSystem)
+        check Gentoo = (LocalContext $ UnixSystem verbosity)
+        check Debian = (LocalContext $ UnixSystem verbosity)
+        check Ubuntu = (LocalContext $ UnixSystem verbosity)
+        verbosity = if (optVerbose context)
+                    then Verbose
+                    else Silent
 
 
 
 extractConfiguration ::  AzubiOptions -> [String] -> IO AzubiOptions
 extractConfiguration opts _ = return opts
 
-data AzubiOptions = AzubiOptions { optExecution :: Execution
+data AzubiOptions = AzubiOptions { optVerbose :: Bool
                                  , optSystem :: System
                                  }
 
 instance Options AzubiOptions where
   defineOptions = pure AzubiOptions
-    <*> defineOption (optionType_enum "Exec Type") execConfig
+    <*> simpleOption "verbose" False "shows the commands output"
     <*> defineOption (optionType_enum "Target System") systemConfig
 
 descriptionHelper :: (Show a ) => [String] -> [ a ] -> String

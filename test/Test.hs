@@ -1,11 +1,8 @@
 
-
-
-
 import Test.Hspec
 
 import Azubi.Syntax
-import Azubi.Model
+import Azubi.Core.Model
 
 main :: IO ()
 main = hspec $ do

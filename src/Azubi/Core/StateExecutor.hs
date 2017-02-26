@@ -1,9 +1,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-
 {-|
 
-Module      : Azubi.StateExecutor
+Module      : Azubi.Core.StateExecutor
 Description : Core low level State evaluation and enforcement
 Copyright   : (c) Ingolf Wagner, 2017
 License     : GPL-3
@@ -15,9 +14,9 @@ Portability : POSIX
 This is done by a 'StateExecutor'.
 
 -}
-module Azubi.StateExecutor where
+module Azubi.Core.StateExecutor where
 
-import Azubi.Model
+import Azubi.Core.Model
 
 {-|
 
@@ -53,7 +52,6 @@ instance ScriptStateExecuter a => StateExecutor (ScriptExecute a) where
 
 
 
-
 {-|
 
 should /run/ the states on the local machine.
@@ -68,7 +66,7 @@ class LocalStateExecute a where
 -- there will be now looping.
 newtype LocalContext a = LocalContext a
 
-instance LocalStateExecute a => StateExecutor (LocalContext a) where
+instance  LocalStateExecute a => StateExecutor (LocalContext a) where
 
   execute (LocalContext context) states = do
     setup context

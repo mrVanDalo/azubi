@@ -1,6 +1,6 @@
 {-|
 
-Module      : Azubi.Installable
+Module      : Azubi.Module.Installable
 Description : provide install function
 Copyright   : (c) Ingolf Wagner, 2017
 License     : GPL-3
@@ -11,11 +11,20 @@ Portability : POSIX
 To install software on your computer.
 
 -}
-module Azubi.Installable where
+module Azubi.Module.Installable where
 
-import Azubi.Model
-import Azubi.Runable
+import Azubi.Core.Model
 
+import Azubi.Module.Runable
+
+
+
+{-|
+
+To install Software you have to
+instance the Installable class.
+
+-}
 class Installable a where
 
   {-|
@@ -30,8 +39,9 @@ The /piece/ of software should be typed of course.
 
 {-|
 
-make sure something is installed and
-up to date.
+Same like 'Installable' but will also
+make sure there you have the newest
+version.
 
 -}
 class Updatable a where
@@ -49,8 +59,11 @@ up to date.
 
 {-|
 
-Ebuild is a Portage package which can
-be installed and or updated.
+Ebuild is a Portage package (used by Gentoo and Funtoo).
+
+<http://gentoo.org>
+
+See 'installed'.
 
 -}
 data Ebuild = Ebuild String
@@ -64,7 +77,7 @@ instance Installable Ebuild where
 
 instance Updatable Ebuild where
 
-  uptodate (Ebuild package) = States
+  uptodate (Ebuild package) = States [AlwaysYes]
                               [ installed (Ebuild package)
                                 , State
                                   [Not $ Check "eix" ["--upgrade-", "--nocolor",  package] Nothing]
@@ -78,12 +91,17 @@ instance Updatable Ebuild where
 
 
 
-
+-- | Url of the repository used by
+-- git clone
 type RepoUrl = String
 
 {-|
 
-Git is something that can be installed or updated
+Git is a version control system.
+
+<http://git.scm.com>
+
+See 'installed'.
 
 -}
 data Git = Git RepoUrl Path
@@ -103,7 +121,7 @@ instance Installable Git where
 instance Updatable Git where
 
   uptodate (Git repo path) =
-    States
+    States [AlwaysYes]
     [ installed (Git repo path )
     , run (Always "git" ["--work-tree=" ++ path, "pull"])
     ]

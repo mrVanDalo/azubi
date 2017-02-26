@@ -1,6 +1,6 @@
 {-|
 
-Module      : Azubi.Runable
+Module      : Azubi.Module.Runable
 Description : deploy 'run' command
 Copyright   : (c) Ingolf Wagner, 2017
 License     : GPL-3
@@ -9,23 +9,15 @@ Stability   : experimental
 Portability : POSIX
 
 -}
-module Azubi.Runable where
+module Azubi.Module.Runable where
 
-import Azubi.Model
-
+import Azubi.Core.Model
 
 {-|
 
-run a command
+creates a 'State' that will run a command of your choice.
 
 -}
-data RunCommand =
-  -- | run command every time
-  Always String [Argument]
-  -- | run command and creates a file to prevent to run again
-  | Once String [Argument] Path
-
-
 run :: RunCommand -> State
 run (Once command arguments result) =
   let
@@ -46,3 +38,16 @@ run (Always command arguments) =
   [ Not AlwaysYes ]
   [ Run command arguments $ Just $ unwords $ [ "run command",   command ] ++ arguments ]
   Nothing
+
+{-|
+
+The way a command should be run. See 'run'
+
+-}
+data RunCommand =
+  -- | run command every time
+  Always String [Argument]
+  -- | run command and creates a file to prevent to run again
+  | Once String [Argument] Path
+
+
