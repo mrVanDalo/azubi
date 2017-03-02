@@ -104,25 +104,29 @@ Git is a version control system.
 See 'installed'.
 
 -}
-data Git = Git RepoUrl Path
+data Git = Git RepoUrl Path [GitOption]
+data GitOption = Recursive
 
 
 instance Installable Git where
 
-  installed (Git repository path) = State
-                                    [FolderExists path]
-                                    [Run "git"
-                                      ["clone"
-                                      , repository
-                                      , path]
-                                      (Just $ "cloning " ++ repository ++ " to " ++ path)]
-                                    (Just $ "installed (git " ++ path ++ " <- " ++ repository ++ ")")
+  installed (Git repository path options) =
+    State
+    [FolderExists path]
+    [ Run
+      "git" ( [ "clone" , repository , path ] ++ (extractCloneOptions options) )
+      (Just $ "cloning " ++ repository ++ " to " ++ path)]
+    (Just $ "installed (git " ++ path ++ " <- " ++ repository ++ ")")
+    where
+      extractCloneOptions :: [GitOption] -> [String]
+      extractCloneOptions [] = []
+      extractCloneOptions (Recursive:xs) = "--recursive" : (extractCloneOptions xs)
 
 instance Updatable Git where
 
-  uptodate (Git repo path) =
+  uptodate (Git repo path options) =
     States [AlwaysYes]
-    [ installed (Git repo path )
+    [ installed (Git repo path options)
     , run (Always "git" ["--work-tree=" ++ path, "pull"])
     ]
     (Just $ "up to date (git " ++ path ++ " <- " ++ repo ++")")
