@@ -44,7 +44,7 @@ stateA `requires` stateB == 'submodule' [stateB, stateA]
 
 -}
 requires :: State -> State -> State
-stateA  `requires` stateB = States [AlwaysYes] [stateB, stateA] Nothing
+stateA  `requires` stateB = States [Not AlwaysYes] [stateB, stateA] Nothing
 
 {-|
 
@@ -56,7 +56,7 @@ will be ignored.
 
 -}
 submodule :: [State] -> State
-submodule states = States [AlwaysYes] states Nothing
+submodule states = States [Not AlwaysYes] states Nothing
 
 
 {-|

@@ -13,8 +13,7 @@ Run 'State's on a Unix machine.
 
 -}
 
-module Azubi.Core.StateExecutors.LocalUnixStateExecutor ( UnixSystem(..)
-                                                        , Verbosity(..) ) where
+module Azubi.Core.StateExecutors.LocalUnixStateExecutor where
 
 import Azubi.Core.Model
 import Azubi.Core.StateExecutor
@@ -24,7 +23,9 @@ import System.Directory
 import System.Process
 import System.Exit
 
-import System.Posix.Files (createSymbolicLink, readSymbolicLink)
+import System.Posix.Files (createSymbolicLink)
+
+import System.FilePath.Posix
 
 import Data.Algorithm.Diff
 import Data.Algorithm.DiffOutput
@@ -132,24 +133,27 @@ runComment' Nothing = return ()
 
 -- | Run a Check
 runCheck' :: UnixSystem -> Check -> IO CheckResult
-runCheck' _ (FolderExists path) = do
+runCheck' systemConfig (FolderExists path) = do
   behind <- whatIsBehind' path
+  log' systemConfig ["check if folder exists", (show behind)]
   case behind of
     IsFolder -> return Yes
     _ -> return No
 
-runCheck' _ (SymlinkExists path target) = do
+runCheck' systemConfig (SymlinkExists path target) = do
+  goodTarget <- goodPath' target
   behind <- whatIsBehind' path
+  log' systemConfig ["check if symlink exists", path, target, (show behind) ]
   case behind of
-    IsSymlink -> do
-      behindTarget <- readSymbolicLink path
-      if behindTarget == target
+    IsSymlink behindTarget -> do
+      if behindTarget == goodTarget
       then return Yes
       else return No
     _ -> return No
 
-runCheck' _ (HasFileContent path content) = do
+runCheck' systemConfig (HasFileContent path content) = do
   behind <- whatIsBehind' path
+  log' systemConfig ["check if file has content ", (show behind)]
   case behind of
     IsFile -> checkContent
     _ -> return No
@@ -165,6 +169,7 @@ runCheck' _ (HasFileContent path content) = do
             return No
 runCheck' systemConfig (Check command args comment) = do
   runComment' comment
+  log' systemConfig ["check command ", command , show args ]
   result <- runProcess' systemConfig [command] args
   case result of
     ExitSuccess -> return Yes
@@ -187,28 +192,53 @@ runCheck' _ (DoesExist path) = do
 
 data FileType = IsFile
               | DoesNotExist
-              | IsSymlink
+              | IsSymlink Path
               | IsFolder
-              deriving (Show, Eq, Enum)
+              deriving (Show, Eq)
 
 -- | helper function to check whats behind a path
 whatIsBehind' :: String -> IO FileType
-whatIsBehind' path = do
+whatIsBehind' path' = do
+  path <- goodPath' path'
   checkFile <- doesFileExist path
   checkFolder <- doesDirectoryExist path
-  case (checkFolder, checkFile) of
-    (True,  _) -> return IsFolder
-    (False, True) -> do
-      checkSymlink <- pathIsSymbolicLink path
-      if checkSymlink
-      then return IsSymlink
-      else return IsFile
-    (False, False) -> return DoesNotExist
+  checkSymlink <- pathIsSymbolicLink path
+  case (checkSymlink, checkFolder, checkFile) of
+    (True, _, _ ) -> do
+        target <- getSymbolicLinkTarget path
+        goodTarget <- goodPath' target
+        return $ IsSymlink goodTarget
+    (False, True,  _) -> return IsFolder
+    (False, False, True) -> return IsFile
+    (False, False, False) -> return DoesNotExist
+
+
+{-|
+
+corrects the path
+
+* replaces ~
+
+-}
+
+goodPath' :: String -> IO String
+goodPath' path = if ((head (splitDirectories path)) == "~")
+     then do
+       home <- getHomeDirectory
+       return $ joinPath $ home : (drop 1 (splitDirectories path))
+     else
+       return path
 
 
 -- | simple print function
 echo' :: [String] -> IO ()
 echo' text = putStrLn $ unwords $ "[Azubi]":text
+
+-- | simple log function
+log' :: UnixSystem -> [String] -> IO ()
+log' systemConfig message = case (verbose systemConfig) of
+  Verbose -> echo' message
+  Silent -> return ()
 
 -- | run a process and wait until it's finished
 -- | return the exit code
