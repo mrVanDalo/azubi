@@ -13,8 +13,7 @@ Run 'State's on a Unix machine.
 
 -}
 
-module Azubi.Core.StateExecutors.LocalUnixStateExecutor ( UnixSystem(..)
-                                                        , Verbosity(..) ) where
+module Azubi.Core.StateExecutors.LocalUnixStateExecutor where
 
 import Azubi.Core.Model
 import Azubi.Core.StateExecutor
@@ -24,7 +23,9 @@ import System.Directory
 import System.Process
 import System.Exit
 
-import System.Posix.Files (createSymbolicLink, readSymbolicLink)
+import System.Posix.Files (createSymbolicLink)
+
+import System.FilePath.Posix
 
 import Data.Algorithm.Diff
 import Data.Algorithm.DiffOutput
@@ -48,7 +49,7 @@ instance LocalStateExecute UnixSystem where
 
 
   executeState systemConfig (State checks commands comment) = do
-    runComment' comment
+    stateComment' comment
     checkResult <- collectCheckResults systemConfig checks
     case checkResult of
       Yes -> return Fulfilled
@@ -59,7 +60,7 @@ instance LocalStateExecute UnixSystem where
           Failure -> return Unfulfilled
 
   executeState systemConfig (States check states comment) = do
-    runComment' comment
+    stateComment' comment
     result <- collectCheckResults systemConfig check
     case result of
       Yes -> return Fulfilled
@@ -95,80 +96,94 @@ collectRunResults systemConfig (command:rest) = do
 
 -- | Run a command
 runCommand' :: UnixSystem -> Command -> IO CommandResult
-runCommand' _ (CreateFolder path) = do
-  runComment' $ Just $ "create directory " ++ path
+runCommand' systemConfig (CreateFolder path) = do
+  logger' systemConfig commandComment' ["create directory ", path]
   createDirectoryIfMissing True path
   return Success
 
-runCommand' _ (FileContent path content) = do
-  runComment' $ Just $ "write content to " ++ path
+runCommand' systemConfig (FileContent path content) = do
+  logger' systemConfig commandComment' ["write content to ", path]
   writeFile path $ unlines content
   return Success
 
-runCommand' _ (CreateSymlink path target) = do
-  runComment' $ Just $ "create link " ++ path ++ " to " ++ target
+runCommand' systemConfig (CreateSymlink path target) = do
+  logger' systemConfig commandComment' ["create link", path, " to ", target]
   createSymbolicLink target path
   return Success
 
 runCommand' systemConfig (Run command arguments comment) = do
-  runComment' comment
+  commandComment' comment
+  logger' systemConfig commandComment' ["run shell command", command, show arguments] 
   result <- runProcess' systemConfig [command] arguments
   case result of
     ExitSuccess -> return Success
     _ -> return Failure
 
-runCommand' _ (Remove path) = do
-  runComment' (Just $ "remove " ++ path)
+runCommand' systemConfig (Remove path) = do
+  logger' systemConfig commandComment' ["remove", path]
   removePathForcibly path
   return Success
 
 
--- | show a comment
-runComment' :: Maybe Comment -> IO ()
-runComment' (Just comment) = echo' [comment]
-runComment' Nothing = return ()
-
-
-
 -- | Run a Check
 runCheck' :: UnixSystem -> Check -> IO CheckResult
-runCheck' _ (FolderExists path) = do
+runCheck' systemConfig (FolderExists path) = do
   behind <- whatIsBehind' path
   case behind of
-    IsFolder -> return Yes
-    _ -> return No
+    IsFolder -> do
+      logger' systemConfig checkComment' ["FolderExists", path, ": YES"]
+      return Yes
+    _ -> do
+      logger' systemConfig checkComment' ["FolderExists", path, ": NO"]
+      return No
 
-runCheck' _ (SymlinkExists path target) = do
+runCheck' systemConfig (SymlinkExists path target) = do
+  goodTarget <- goodPath' target
   behind <- whatIsBehind' path
   case behind of
-    IsSymlink -> do
-      behindTarget <- readSymbolicLink path
-      if behindTarget == target
-      then return Yes
-      else return No
-    _ -> return No
+    IsSymlink behindTarget -> do
+      if behindTarget == goodTarget
+      then do
+        logger' systemConfig checkComment' ["SymlinkExists", path, "->", target, ": YES"]
+        return Yes
+      else do
+        logger' systemConfig checkComment' ["SymlinkExists", path, "->", target, ": NO"]
+        return No
+    _ -> do
+      logger' systemConfig checkComment' ["SymlinkExists", path, "->", target, ": NO"]
+      return No
 
-runCheck' _ (HasFileContent path content) = do
+runCheck' systemConfig (HasFileContent path content) = do
   behind <- whatIsBehind' path
   case behind of
     IsFile -> checkContent
-    _ -> return No
+    _ -> do
+      logger' systemConfig checkComment' ["HasFileContent", path, ": NO"]
+      return No
   where
     checkContent = do
       file <- readFile path
       currentContent <- return $ lines file
       diff <- return $ getGroupedDiff currentContent content
       case diff of
-        (Both _ _):[] -> return Yes
+        (Both _ _):[] -> do
+          logger' systemConfig checkComment' ["HasFileContent", path, ": YES"]
+          return Yes
         _ -> do
-            echo' [ppDiff diff]
-            return No
+          logger' systemConfig checkComment' ["HasFileContent", path, ": NO"]
+          echo' [ppDiff diff]
+          return No
+
 runCheck' systemConfig (Check command args comment) = do
-  runComment' comment
+  checkComment' comment
   result <- runProcess' systemConfig [command] args
   case result of
-    ExitSuccess -> return Yes
-    _ -> return No
+    ExitSuccess -> do
+      logger' systemConfig checkComment' ["Shell Command Check", command , show args , ": YES"]
+      return Yes
+    _ -> do
+      logger' systemConfig checkComment' ["Shell Command Check", command , show args , ": NO"]
+      return No
 
 runCheck' systemConfig  (Not check ) = do
   result <- runCheck' systemConfig check
@@ -178,40 +193,49 @@ runCheck' systemConfig  (Not check ) = do
 
 runCheck' _ AlwaysYes = return Yes
 
-runCheck' _ (DoesExist path) = do
+runCheck' systemConfig (DoesExist path) = do
   behind <- whatIsBehind' path
   case behind of
-    DoesNotExist -> return No
-    _ -> return Yes
+    DoesNotExist -> do
+      logger' systemConfig checkComment' ["DoesExist",path, ": NO"]
+      return No
+    _ -> do
+      logger' systemConfig checkComment' ["DoesExist",path, ": YES"]
+      return Yes
 
 
 data FileType = IsFile
               | DoesNotExist
-              | IsSymlink
+              | IsSymlink Path
               | IsFolder
-              deriving (Show, Eq, Enum)
+              deriving (Show, Eq)
 
 -- | helper function to check whats behind a path
 whatIsBehind' :: String -> IO FileType
-whatIsBehind' path = do
-  checkFile <- doesFileExist path
-  checkFolder <- doesDirectoryExist path
-  case (checkFolder, checkFile) of
-    (True,  _) -> return IsFolder
-    (False, True) -> do
+whatIsBehind' path' = do
+  path <- goodPath' path'
+  exists <- doesPathExist path
+  if exists
+    then figureOutFileType path
+    else return DoesNotExist
+  where
+    figureOutFileType path = do
+      checkFolder <- doesDirectoryExist path
       checkSymlink <- pathIsSymbolicLink path
-      if checkSymlink
-      then return IsSymlink
-      else return IsFile
-    (False, False) -> return DoesNotExist
+      case (checkSymlink, checkFolder) of
+        (True, _) -> do
+            target <- getSymbolicLinkTarget path
+            goodTarget <- goodPath' target
+            return $ IsSymlink goodTarget
+        (False, True) -> return IsFolder
+        (False, False) -> return IsFile
 
+{-|
 
--- | simple print function
-echo' :: [String] -> IO ()
-echo' text = putStrLn $ unwords $ "[Azubi]":text
+run a process and wait until it's finished
+return the exit code
 
--- | run a process and wait until it's finished
--- | return the exit code
+-}
 runProcess' :: UnixSystem -> [String] -> [String] -> IO ExitCode
 runProcess' systemConfig command args =  do
   (_, _ , _ , checkHandle ) <- createProcess (shell $ unwords $ command ++ args ){ std_out = stdOutHandle }
@@ -223,4 +247,46 @@ runProcess' systemConfig command args =  do
         Verbose -> Inherit
         Silent -> NoStream
 
+{-|
+
+corrects the path
+
+* replaces ~
+
+-}
+goodPath' :: String -> IO String
+goodPath' path = if ((head (splitDirectories path)) == "~")
+     then do
+       home <- getHomeDirectory
+       return $ joinPath $ home : (drop 1 (splitDirectories path))
+     else
+       return path
+
+
+-- | simple print function
+echo' :: [String] -> IO ()
+echo' text = putStrLn $ unwords $ "[Azubi]":text
+
+
+-- | render state comments
+stateComment' :: Maybe Comment -> IO ()
+stateComment' (Just comment) = echo' ["[State]", comment]
+stateComment' Nothing = return ()
+
+-- | render command comments
+commandComment' :: Maybe Comment -> IO ()
+commandComment' (Just comment) = echo' ["[Run]", comment]
+commandComment' Nothing = return ()
+
+-- | render check comments
+checkComment' :: Maybe Comment -> IO ()
+checkComment' (Just comment) = echo' ["[Check]", comment]
+checkComment' Nothing = return ()
+
+logger' :: UnixSystem -> (Maybe Comment -> IO ()) -> [Comment] -> IO ()
+logger' _ _ [] = return ()
+logger' systemConfig messager comment =
+  case (verbose systemConfig) of
+    Verbose -> messager $ Just $ unwords comment
+    Silent -> return ()
 

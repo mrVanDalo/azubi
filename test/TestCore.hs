@@ -10,8 +10,6 @@ main = hspec $ do
     it "should be the same as submoulde for 2 arguments" $ do
        (stateA `requires` stateB) `shouldBe` (submodule [stateB, stateA])
 
-
-
 stateA :: State
 stateA = State [] [Run "echo" ["you"] Nothing] Nothing
 stateB :: State

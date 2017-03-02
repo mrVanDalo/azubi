@@ -26,6 +26,7 @@ main = azubiMain $ []
 module Azubi ( State(..)
              , Ebuild(..)
              , Git(..)
+             , GitOption(..)
              , RunCommand(..)
              , installed
              , Installable

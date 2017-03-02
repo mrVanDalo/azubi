@@ -73,7 +73,7 @@ instance Installable Ebuild where
   installed (Ebuild package) = State
                                [Check "eix" ["--exact", "--nocolor", "--installed", package] (Just $ "check if package " ++ package ++ " is installed")]
                                [Run "emerge" [package] (Just $ "installing " ++ package)]
-                               Nothing
+                               (Just $ "installed " ++ package) 
 
 instance Updatable Ebuild where
 
@@ -84,7 +84,7 @@ instance Updatable Ebuild where
                                   [Run "emerge" [package] (Just $ "upgrade " ++ package)]
                                   Nothing
                               ]
-                              Nothing
+                              (Just $ "up to date " ++ package)
 
 
 
@@ -104,27 +104,31 @@ Git is a version control system.
 See 'installed'.
 
 -}
-data Git = Git RepoUrl Path
+data Git = Git RepoUrl Path [GitOption]
+data GitOption = Recursive
 
 
 instance Installable Git where
 
-  installed (Git repository path) = State
-                                    [FolderExists path]
-                                    [Run "git"
-                                      ["clone"
-                                      , repository
-                                      , path]
-                                      (Just $ "cloning " ++ repository ++ " to " ++ path)]
-                                    Nothing
+  installed (Git repository path options) =
+    State
+    [FolderExists path]
+    [ Run
+      "git" ( [ "clone" , repository , path ] ++ (extractCloneOptions options) )
+      (Just $ "cloning " ++ repository ++ " to " ++ path)]
+    (Just $ "installed (git " ++ path ++ " <- " ++ repository ++ ")")
+    where
+      extractCloneOptions :: [GitOption] -> [String]
+      extractCloneOptions [] = []
+      extractCloneOptions (Recursive:xs) = "--recursive" : (extractCloneOptions xs)
 
 instance Updatable Git where
 
-  uptodate (Git repo path) =
+  uptodate (Git repo path options) =
     States [AlwaysYes]
-    [ installed (Git repo path )
+    [ installed (Git repo path options)
     , run (Always "git" ["--work-tree=" ++ path, "pull"])
     ]
-    Nothing
+    (Just $ "up to date (git " ++ path ++ " <- " ++ repo ++")")
 
 
