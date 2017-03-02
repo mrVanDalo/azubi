@@ -87,7 +87,7 @@ link path target =
   [ State [Not $ DoesExist path] [Remove path] Nothing
   , State [Not AlwaysYes] [CreateSymlink path target] Nothing
   ]
-  (Just $ "link " ++ path ++ " to " ++ target)
+  (Just $ "link " ++ path ++ " -> " ++ target)
 
 {-|
 

@@ -73,7 +73,7 @@ instance Installable Ebuild where
   installed (Ebuild package) = State
                                [Check "eix" ["--exact", "--nocolor", "--installed", package] (Just $ "check if package " ++ package ++ " is installed")]
                                [Run "emerge" [package] (Just $ "installing " ++ package)]
-                               Nothing
+                               (Just $ "installed " ++ package) 
 
 instance Updatable Ebuild where
 
@@ -84,7 +84,7 @@ instance Updatable Ebuild where
                                   [Run "emerge" [package] (Just $ "upgrade " ++ package)]
                                   Nothing
                               ]
-                              Nothing
+                              (Just $ "up to date " ++ package)
 
 
 
@@ -116,7 +116,7 @@ instance Installable Git where
                                       , repository
                                       , path]
                                       (Just $ "cloning " ++ repository ++ " to " ++ path)]
-                                    Nothing
+                                    (Just $ "installed (git " ++ path ++ " <- " ++ repository ++ ")")
 
 instance Updatable Git where
 
@@ -125,6 +125,6 @@ instance Updatable Git where
     [ installed (Git repo path )
     , run (Always "git" ["--work-tree=" ++ path, "pull"])
     ]
-    Nothing
+    (Just $ "up to date (git " ++ path ++ " <- " ++ repo ++")")
 
 

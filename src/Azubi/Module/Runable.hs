@@ -31,13 +31,13 @@ run (Once command arguments result) =
     [ HasFileContent result fileContent ]
     [ Run command arguments $ Just $ unwords $ [ "run command" , command ] ++ arguments
     , FileContent result fileContent ]
-    Nothing
+    (Just $ "run once " ++ command ++ " " ++ (show arguments))
 
 run (Always command arguments) =
   State
   [ Not AlwaysYes ]
   [ Run command arguments $ Just $ unwords $ [ "run command",   command ] ++ arguments ]
-  Nothing
+  (Just $ "run always " ++ command ++ " " ++ (show arguments))
 
 {-|
 
