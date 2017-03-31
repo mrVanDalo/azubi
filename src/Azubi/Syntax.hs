@@ -15,6 +15,7 @@ language, to describe system states.
 module Azubi.Syntax where
 
 import Azubi.Core.Model
+import System.FilePath.Posix
 
 
 {-|
@@ -26,9 +27,20 @@ Every String in the List will be a Line in the File.
 
 -}
 content :: Path -> [String] -> State
-content path fileContent = State [HasFileContent path fileContent]
-                                 [FileContent path fileContent]
-                                 (Just $ unwords [ "Content for File" , path ])
+content path fileContent = States
+  [ HasFileContent path fileContent ]
+  [
+    folderExists (takeDirectory path)
+  , State
+    [ Not $ FolderExists path ]
+    [ Remove path ]
+    Nothing
+  , State
+    [ Not AlwaysYes ]
+    [ FileContent path fileContent ]
+    Nothing
+  ]
+  (Just $ unwords [ "Content for File" , path ])
 
 {-|
 
@@ -65,7 +77,29 @@ make sure a folder exists
 
 -}
 folderExists :: Path -> State
-folderExists path = State [FolderExists path] [CreateFolder path] Nothing
+folderExists path =
+  let folders = reverse $ allFolders $ splitDirectories path
+  in
+  States [FolderExists path]
+  (map
+    (\folder ->
+        States [FolderExists folder]
+        [ State [ Not $ DoesExist folder ]
+          [ Remove folder ]
+          (Just $ "fuckup " ++ folder)
+        , State [Not AlwaysYes ]
+          [CreateFolder folder]
+          (Just $ "create " ++ folder)
+        ]
+        Nothing
+    ) folders )
+  Nothing
+  where
+    allFolders [] = []
+    allFolders (x:xs) = (joinPath $ x:xs) : (allFolders xs)
+
+
+
 
 {-|
 
