@@ -40,6 +40,8 @@ module Azubi ( State(..)
              , submodule
              , (&)
              , azubiMain
+             , Command(..)
+             , Check(..)
              ) where
 
 

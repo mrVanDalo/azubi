@@ -3,3 +3,4 @@ dist
 cabal.sandbox.config
 testcases
 tmp
+dynamic-test-folder

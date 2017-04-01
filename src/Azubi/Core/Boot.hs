@@ -18,7 +18,7 @@ module Azubi.Core.Boot where
 import Options
 import Azubi.Core.Model
 import Azubi.Core.StateExecutor
-import Azubi.Core.StateExecutors.LocalUnixStateExecutor
+import Azubi.Core.StateExecutors.LocalUnixStateExecutor hiding (runCommand)
 
 
 {-|
@@ -52,26 +52,14 @@ instance Options AzubiOptions where
     <*> simpleOption "verbose" False "shows the commands output"
     <*> defineOption (optionType_enum "Target System") systemConfig
 
+
+
+
 descriptionHelper :: (Show a ) => [String] -> [ a ] -> String
 descriptionHelper text (x:xs)= unwords $ text ++ ["[" ++ foldl (\a b -> a ++ ", " ++ (show b)) (show x) xs ++ "]" ]
 descriptionHelper text [] = unwords text
 
 
-data Execution = Command
-               | Dummy
-               deriving (Show, Eq, Bounded, Enum)
-
-execConfig :: Option Execution -> Option Execution
-execConfig opt =
-        opt{ optionLongFlags = ["exec"]
-           , optionDefault = Command
-           , optionDescription =
-             descriptionHelper
-             [ "Type of Execution"
-             , "which is more or less the way the rules should"
-             , "System States should be enforced."]
-             [Command ..]
-           }
 
 
 data System = Gentoo
