@@ -18,7 +18,7 @@ module Azubi.Core.Boot where
 import Options
 import Azubi.Core.Model
 import Azubi.Core.StateExecutor
-import Azubi.Core.StateExecutors.LocalUnixStateExecutor
+import Azubi.Core.StateExecutors.LocalUnixStateExecutor hiding (runCommand)
 
 
 {-|

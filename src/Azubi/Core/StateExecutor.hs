@@ -58,9 +58,26 @@ should /run/ the states on the local machine.
 
 -}
 class LocalStateExecute a where
+  -- | a setup function that can be overwritten
+  -- for stuff that has to be done before
+  -- processing the states
   setup    :: a -> IO ()
+  setup _ = return ()
+
+  -- | the function that should execute all states
+  -- this one has to be implemented
   executeState :: a -> State -> IO StateResult
+
+  -- | the function called right after processing
+  -- all of the states which can be overwritten
   tearDown :: a -> [StateResult] -> IO ()
+  tearDown _ _ = return ()
+
+  -- | will be called right before the
+  -- `exectueState` so you can preprocess the State
+  -- and remove or add stuff
+  prePorcessState :: a -> State -> IO (State)
+  prePorcessState _ state = return state
 
 -- | wrapper type to prove Haskell
 -- there will be now looping.
@@ -70,7 +87,8 @@ instance  LocalStateExecute a => StateExecutor (LocalContext a) where
 
   execute (LocalContext context) states = do
     setup context
-    results <- collectStateResults states
+    processedStates <- collectPreprocessed states
+    results <- collectStateResults processedStates
     tearDown context results
     where
       collectStateResults :: [State] -> IO [StateResult]
@@ -79,6 +97,13 @@ instance  LocalStateExecute a => StateExecutor (LocalContext a) where
         result <- executeState context x
         restResults <- collectStateResults xs
         return $ result:restResults
+      collectPreprocessed :: [State] -> IO [State]
+      collectPreprocessed [] = return []
+      collectPreprocessed (x:xs) = do
+        result <- prePorcessState context x
+        restResults <- collectPreprocessed xs
+        return $ result:restResults
+
 
 
 

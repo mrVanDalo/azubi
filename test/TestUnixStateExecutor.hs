@@ -67,6 +67,13 @@ main = hspec $ do
       folderType <- whatIsBehind' file
       folderType `shouldBe` IsFile
 
+  describe "preProcessState should" $ do
+    it "replace ~ in paths" $ do
+      home <- getHomeDirectory
+      home `shouldNotBe` "~"
+      state <- prePorcessState (UnixSystem verbosity) $ State [FolderExists "~/test"] [CreateFolder "~/test"] Nothing
+      state `shouldBe` State [FolderExists $ home ++ "/test"] [CreateFolder $ home ++ "/test"] Nothing
+
 
 
 executeIt :: [State] -> IO ()
