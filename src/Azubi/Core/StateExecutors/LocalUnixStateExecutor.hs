@@ -102,43 +102,43 @@ instance LocalStateExecute UnixSystem where
 preProcessCommand ::PreProcessors -> Command -> Command
 preProcessCommand _ (Run command arguments comment) =
   Run command arguments comment
-preProcessCommand preprocessors (FileContent path content) =
+preProcessCommand preProcessors (FileContent path content) =
   FileContent
-  ((homeUpdate preprocessors) path)
+  ((homeUpdate preProcessors) path)
   content
-preProcessCommand preprocessors (CreateSymlink path target) =
+preProcessCommand preProcessors (CreateSymlink path target) =
   CreateSymlink
-  ((homeUpdate preprocessors) path)
-  ((homeUpdate preprocessors) target)
-preProcessCommand preprocessors (CreateFolder path) =
+  ((homeUpdate preProcessors) path)
+  ((homeUpdate preProcessors) target)
+preProcessCommand preProcessors (CreateFolder path) =
   CreateFolder
-  ((homeUpdate preprocessors) path)
+  ((homeUpdate preProcessors) path)
 
-preProcessCommand preprocessors (Remove path) =
+preProcessCommand preProcessors (Remove path) =
   Remove
-  ((homeUpdate preprocessors) path)
+  ((homeUpdate preProcessors) path)
 
 prePorcessCheck :: PreProcessors -> Check -> Check
 prePorcessCheck _ (Check command arguments comment) =
   Check command arguments comment
 prePorcessCheck _ AlwaysYes =
   AlwaysYes
-prePorcessCheck preprocessors (Not check) =
-  Not (prePorcessCheck preprocessors check)
-prePorcessCheck preprocessors (HasFileContent path content) =
+prePorcessCheck preProcessors (Not check) =
+  Not (prePorcessCheck preProcessors check)
+prePorcessCheck preProcessors (HasFileContent path content) =
   HasFileContent
-  ((homeUpdate preprocessors) path)
+  ((homeUpdate preProcessors) path)
   content
-prePorcessCheck preprocessors (SymlinkExists path target) =
+prePorcessCheck preProcessors (SymlinkExists path target) =
   SymlinkExists
-  ((homeUpdate preprocessors) path)
-  ((homeUpdate preprocessors) target)
-prePorcessCheck preprocessors (FolderExists path) =
+  ((homeUpdate preProcessors) path)
+  ((homeUpdate preProcessors) target)
+prePorcessCheck preProcessors (FolderExists path) =
   FolderExists
-  ((homeUpdate preprocessors) path)
-prePorcessCheck preprocessors (DoesExist path) =
+  ((homeUpdate preProcessors) path)
+prePorcessCheck preProcessors (DoesExist path) =
   DoesExist
-  ((homeUpdate preprocessors) path)
+  ((homeUpdate preProcessors) path)
 
 
 -- | unroll a number of Check(s)
