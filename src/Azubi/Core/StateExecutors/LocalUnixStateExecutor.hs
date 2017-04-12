@@ -25,14 +25,11 @@ import System.Exit
 
 import System.Posix.Files (createSymbolicLink)
 
-import System.FilePath.Posix
-
 import Data.Algorithm.Diff
 import Data.Algorithm.DiffOutput
 
 
-
-data Verbosity = Verbose | Silent
+import qualified Azubi.Core.StateExecutors.UnixUtils as Util
 
 {-|
 
@@ -44,30 +41,18 @@ Unix System like Linux, AIX or OSX
 data UnixSystem = UnixSystem { verbose :: Verbosity }
 
 
-data PreProcessors =
-  PreProcessors { homeUpdate :: (String -> String) }
-
-homeReplacement :: String -> String -> String
-homeReplacement home path =
-  if ((head (splitDirectories path)) == "~")
-  then do
-    joinPath $ home : (drop 1 $ splitDirectories path)
-  else
-    path
-
+data Verbosity = Verbose | Silent
 
 instance LocalStateExecute UnixSystem where
 
   prePorcessState _ (State checks commands comment) = do
-    home <- getHomeDirectory
-    let preProcessors = PreProcessors (homeReplacement home)
+    preProcessors <- Util.preProcessors
     let newChecks =  (map (prePorcessCheck preProcessors) checks)
     let newCommands = (map (preProcessCommand preProcessors) commands)
     return $ State newChecks newCommands comment
 
   prePorcessState systemConfig (States checks states comment) = do
-    home <- getHomeDirectory
-    let preProcessors = PreProcessors (homeReplacement home)
+    preProcessors <- Util.preProcessors
     let newChecks = (map (prePorcessCheck preProcessors) checks)
     newStates <-  sequence $ map (prePorcessState systemConfig) states
     return $ States newChecks newStates comment
@@ -99,26 +84,26 @@ instance LocalStateExecute UnixSystem where
           Unfulfilled -> return Unfulfilled
           Fulfilled -> collectStateResults xs
 
-preProcessCommand ::PreProcessors -> Command -> Command
+preProcessCommand :: Util.PreProcessors -> Command -> Command
 preProcessCommand _ (Run command arguments comment) =
   Run command arguments comment
 preProcessCommand preProcessors (FileContent path content) =
   FileContent
-  ((homeUpdate preProcessors) path)
+  ((Util.homeUpdate preProcessors) path)
   content
 preProcessCommand preProcessors (CreateSymlink path target) =
   CreateSymlink
-  ((homeUpdate preProcessors) path)
-  ((homeUpdate preProcessors) target)
+  ((Util.homeUpdate preProcessors) path)
+  ((Util.homeUpdate preProcessors) target)
 preProcessCommand preProcessors (CreateFolder path) =
   CreateFolder
-  ((homeUpdate preProcessors) path)
+  ((Util.homeUpdate preProcessors) path)
 
 preProcessCommand preProcessors (Remove path) =
   Remove
-  ((homeUpdate preProcessors) path)
+  ((Util.homeUpdate preProcessors) path)
 
-prePorcessCheck :: PreProcessors -> Check -> Check
+prePorcessCheck :: Util.PreProcessors -> Check -> Check
 prePorcessCheck _ (Check command arguments comment) =
   Check command arguments comment
 prePorcessCheck _ AlwaysYes =
@@ -127,18 +112,18 @@ prePorcessCheck preProcessors (Not check) =
   Not (prePorcessCheck preProcessors check)
 prePorcessCheck preProcessors (HasFileContent path content) =
   HasFileContent
-  ((homeUpdate preProcessors) path)
+  ((Util.homeUpdate preProcessors) path)
   content
 prePorcessCheck preProcessors (SymlinkExists path target) =
   SymlinkExists
-  ((homeUpdate preProcessors) path)
-  ((homeUpdate preProcessors) target)
+  ((Util.homeUpdate preProcessors) path)
+  ((Util.homeUpdate preProcessors) target)
 prePorcessCheck preProcessors (FolderExists path) =
   FolderExists
-  ((homeUpdate preProcessors) path)
+  ((Util.homeUpdate preProcessors) path)
 prePorcessCheck preProcessors (DoesExist path) =
   DoesExist
-  ((homeUpdate preProcessors) path)
+  ((Util.homeUpdate preProcessors) path)
 
 
 -- | unroll a number of Check(s)
@@ -163,20 +148,17 @@ collectRunResults systemConfig (command:rest) = do
 
 -- | Run a command
 runCommand :: UnixSystem -> Command -> IO CommandResult
-runCommand systemConfig (CreateFolder path') = do
-  path <- goodPath path'
+runCommand systemConfig (CreateFolder path) = do
   logger' systemConfig commandComment' ["create directory ", path]
   createDirectoryIfMissing True path
   return Success
 
-runCommand systemConfig (FileContent path' content) = do
-  path <- goodPath path'
+runCommand systemConfig (FileContent path content) = do
   logger' systemConfig commandComment' ["write content to ", path]
   writeFile path $ unlines content
   return Success
 
-runCommand systemConfig (CreateSymlink path' target) = do
-  path <- goodPath path'
+runCommand systemConfig (CreateSymlink path target) = do
   logger' systemConfig commandComment' ["create link", path, " to ", target]
   createSymbolicLink target path
   return Success
@@ -189,8 +171,7 @@ runCommand systemConfig (Run command arguments comment) = do
     ExitSuccess -> return Success
     _ -> return Failure
 
-runCommand systemConfig (Remove path') = do
-  path <- goodPath path'
+runCommand systemConfig (Remove path) = do
   logger' systemConfig commandComment' ["remove", path]
   removePathForcibly path
   return Success
@@ -209,11 +190,10 @@ runCheck systemConfig (FolderExists path) = do
       return No
 
 runCheck systemConfig (SymlinkExists path target) = do
-  goodTarget <- goodPath target
   behind <- whatIsBehind' path
   case behind of
     IsSymlink behindTarget -> do
-      if behindTarget == goodTarget
+      if behindTarget == target
       then do
         logger' systemConfig checkComment' ["SymlinkExists", path, "->", target, ": YES"]
         return Yes
@@ -224,8 +204,7 @@ runCheck systemConfig (SymlinkExists path target) = do
       logger' systemConfig checkComment' ["SymlinkExists", path, "->", target, ": NO"]
       return No
 
-runCheck systemConfig (HasFileContent path' content) = do
-  path <- goodPath path'
+runCheck systemConfig (HasFileContent path content) = do
   behind <- whatIsBehind' path
   case behind of
     IsFile -> checkContent
@@ -234,7 +213,6 @@ runCheck systemConfig (HasFileContent path' content) = do
       return No
   where
     checkContent = do
-      path <- goodPath path'
       file <- readFile path
       currentContent <- return $ lines file
       diff <- return $ getGroupedDiff currentContent content
@@ -286,7 +264,8 @@ data FileType = IsFile
 -- | helper function to check whats behind a path
 whatIsBehind' :: String -> IO FileType
 whatIsBehind' path' = do
-  path <- goodPath path'
+  preProcessors <- Util.preProcessors
+  let path = (Util.homeUpdate preProcessors) path'
   exists <- doesPathExist path
   if exists
     then figureOutFileType path
@@ -298,8 +277,7 @@ whatIsBehind' path' = do
       case (checkSymlink, checkFolder) of
         (True, _) -> do
             target <- getSymbolicLinkTarget path
-            goodTarget <- goodPath target
-            return $ IsSymlink goodTarget
+            return $ IsSymlink target
         (False, True) -> return IsFolder
         (False, False) -> return IsFile
 
@@ -319,21 +297,6 @@ runProcess' systemConfig command args =  do
       case (verbose systemConfig) of
         Verbose -> Inherit
         Silent -> NoStream
-
-{-|
-
-corrects the path
-
-* replaces ~
-
--}
-goodPath :: String -> IO String
-goodPath path = if ((head (splitDirectories path)) == "~")
-     then do
-       home <- getHomeDirectory
-       return $ joinPath $ home : (drop 1 (splitDirectories path))
-     else
-       return path
 
 
 -- | simple print function

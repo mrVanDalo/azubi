@@ -86,7 +86,7 @@ folderExists path =
         States [FolderExists folder]
         [ State [ Not $ DoesExist folder ]
           [ Remove folder ]
-          (Just $ "fuckup " ++ folder)
+          (Just $ "delete folder : " ++ folder)
         , State [Not AlwaysYes ]
           [CreateFolder folder]
           (Just $ "create " ++ folder)

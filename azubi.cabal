@@ -73,6 +73,7 @@ library
                        Azubi.Core.StateExecutor
                        Azubi.Core.StateExecutors.LocalUnixStateExecutor
                        Azubi.Syntax
+                       Azubi.Core.StateExecutors.UnixUtils
                        Azubi.Module.Installable
                        Azubi.Module.Runable
 

@@ -13,6 +13,10 @@ module Azubi.Module.Runable where
 
 import Azubi.Core.Model
 
+-- todo : Syntax belongs to core
+import Azubi.Syntax
+import System.FilePath.Posix
+
 {-|
 
 creates a 'State' that will run a command of your choice.
@@ -27,10 +31,14 @@ run (Once command arguments result) =
                   , ""
                   , fullCommand ]
   in
-    State
+    States
     [ HasFileContent result fileContent ]
-    [ Run command arguments $ Just $ unwords $ [ "run command" , command ] ++ arguments
-    , FileContent result fileContent ]
+    [ folderExists (takeDirectory result)
+    , State [ Not AlwaysYes ]
+      [ Run command arguments $ Just $ unwords $ [ "run command" , command ] ++ arguments
+      , FileContent result fileContent ]
+      Nothing
+    ]
     (Just $ "run once " ++ command ++ " " ++ (show arguments))
 
 run (Always command arguments) =

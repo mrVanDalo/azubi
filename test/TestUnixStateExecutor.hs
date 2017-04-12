@@ -74,6 +74,20 @@ main = hspec $ do
       state <- prePorcessState (UnixSystem verbosity) $ State [FolderExists "~/test"] [CreateFolder "~/test"] Nothing
       state `shouldBe` State [FolderExists $ home ++ "/test"] [CreateFolder $ home ++ "/test"] Nothing
 
+  describe "run once should" $ do
+    it "create a file for a successful command" $ do
+      beforeFile <- whatIsBehind' "~/run-once-success"
+      beforeFile `shouldBe` DoesNotExist
+      executeIt [run (Once "exit" ["0"] $ dynamicSubPath "run-once-success")]
+      resultFile <- whatIsBehind' $ dynamicSubPath "run-once-success"
+      resultFile `shouldBe` IsFile
+    it "create no file for a failed command" $ do
+      beforeFile <- whatIsBehind' $ dynamicSubPath "run-once-failure"
+      beforeFile `shouldBe` DoesNotExist
+      executeIt [run (Once "exit" ["1"] $ dynamicSubPath "run-once-failure")]
+      resultFile <- whatIsBehind' $ dynamicSubPath "run-once-failure"
+      resultFile `shouldBe` DoesNotExist
+
 
 
 executeIt :: [State] -> IO ()
