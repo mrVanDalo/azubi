@@ -28,6 +28,7 @@ module Azubi ( State(..)
              , Git(..)
              , GitOption(..)
              , RunCommand(..)
+             , RunResults(..)
              , installed
              , Installable
              , uptodate

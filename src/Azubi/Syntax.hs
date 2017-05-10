@@ -78,7 +78,7 @@ make sure a folder exists
 -}
 folderExists :: Path -> State
 folderExists path =
-  let folders = reverse $ allFolders $ splitDirectories path
+  let folders = reverse $ allFolders $ reverse $ splitDirectories path
   in
   States [FolderExists path]
   (map
@@ -96,7 +96,9 @@ folderExists path =
   Nothing
   where
     allFolders [] = []
-    allFolders (x:xs) = (joinPath $ x:xs) : (allFolders xs)
+    allFolders ["/"] = []
+    allFolders ["~"] = []
+    allFolders (x:xs) = (joinPath $ reverse $ x:xs) : (allFolders xs)
 
 
 

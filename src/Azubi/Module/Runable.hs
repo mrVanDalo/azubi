@@ -47,6 +47,24 @@ run (Always command arguments) =
   [ Run command arguments $ Just $ unwords $ [ "run command",   command ] ++ arguments ]
   (Just $ "run always " ++ command ++ " " ++ (show arguments))
 
+
+run (WithResults command arguments results) =
+  States
+  ( map translate results )
+  [ State
+    [ Not AlwaysYes ]
+    [ Run command arguments $ Just $ unwords $ [ "run command" , command ] ++ arguments ]
+    Nothing
+  ]
+  (Just $ "run " ++ command ++ " " ++ (show arguments))
+  where
+    translate :: RunResults -> Check
+    translate (Creates path) = DoesExist path
+    translate (Deletes path) = Not $ DoesExist path
+
+
+
+
 {-|
 
 The way a command should be run. See 'run'
@@ -57,5 +75,18 @@ data RunCommand =
   Always String [Argument]
   -- | run command and creates a file to prevent to run again
   | Once String [Argument] Path
+  -- | run command, with results
+  -- See 'RunResults' on which results are possible
+  | WithResults String [Argument] [RunResults]
+
+data RunResults =
+  -- | The command will create a file or folder
+  -- if there is nothing behind this path
+  -- this will trigger the command to be run.
+  Creates Path
+  -- | The command will delete a file or folder
+  -- if there is there something behind the path
+  -- this will trigger the command to be run.
+  | Deletes Path
 
 
