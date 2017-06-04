@@ -77,7 +77,7 @@ instance Installable Ebuild where
 
 instance Updatable Ebuild where
 
-  uptodate (Ebuild package) = States [AlwaysYes]
+  uptodate (Ebuild package) = States [ SkipChecks ]
                               [ installed (Ebuild package)
                                 , State
                                   [Not $ Check "eix" ["--upgrade-", "--nocolor",  package] Nothing]
@@ -112,7 +112,7 @@ instance Installable Git where
 
   installed (Git repository path options) =
     State
-    [FolderExists path]
+    [ FolderExists path ]
     [ Run
       "git" ( [ "clone" , repository , path ] ++ (extractCloneOptions options) )
       (Just $ "cloning " ++ repository ++ " to " ++ path)]
@@ -125,7 +125,7 @@ instance Installable Git where
 instance Updatable Git where
 
   uptodate (Git repo path options) =
-    States [AlwaysYes]
+    States [ SkipChecks ]
     [ installed (Git repo path options)
     , run (Always "git" ["--work-tree=" ++ path, "pull"])
     ]

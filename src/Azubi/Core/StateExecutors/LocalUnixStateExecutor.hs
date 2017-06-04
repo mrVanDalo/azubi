@@ -106,8 +106,8 @@ preProcessCommand preProcessors (Remove path) =
 prePorcessCheck :: Util.PreProcessors -> Check -> Check
 prePorcessCheck _ (Check command arguments comment) =
   Check command arguments comment
-prePorcessCheck _ AlwaysYes =
-  AlwaysYes
+prePorcessCheck _ SkipChecks =
+  SkipChecks
 prePorcessCheck preProcessors (Not check) =
   Not (prePorcessCheck preProcessors check)
 prePorcessCheck preProcessors (HasFileContent path content) =
@@ -242,7 +242,8 @@ runCheck systemConfig  (Not check ) = do
     No -> return Yes
     Yes  -> return No
 
-runCheck _ AlwaysYes = return Yes
+-- returns `No` to make the State run always the Commands
+runCheck _ SkipChecks = return No
 
 runCheck systemConfig (DoesExist path) = do
   behind <- whatIsBehind' path

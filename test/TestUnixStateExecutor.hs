@@ -41,34 +41,34 @@ main = hspec $ do
         States [FolderExists "/one/two"]
           [ States [FolderExists "/one"]
             [ State [Not (DoesExist "/one")] [Remove "/one"] (Just "delete folder : /one")
-            , State [Not AlwaysYes] [CreateFolder "/one"] (Just "create /one")] Nothing
+            , State [ SkipChecks ] [CreateFolder "/one"] (Just "create /one")] Nothing
           , States [FolderExists "/one/two"]
             [ State [Not (DoesExist "/one/two")] [Remove "/one/two"] (Just "delete folder : /one/two")
-            , State [Not AlwaysYes] [CreateFolder "/one/two"] (Just "create /one/two")] Nothing]
+            , State [ SkipChecks ] [CreateFolder "/one/two"] (Just "create /one/two")] Nothing]
         Nothing
       folderExists "/one/two/three" `shouldBe`
         States [FolderExists "/one/two/three"]
           [ States [FolderExists "/one"]
             [ State [Not (DoesExist "/one")] [Remove "/one"] (Just "delete folder : /one")
-            , State [Not AlwaysYes] [CreateFolder "/one"] (Just "create /one")] Nothing
+            , State [ SkipChecks ] [CreateFolder "/one"] (Just "create /one")] Nothing
           , States [FolderExists "/one/two"]
             [ State [Not (DoesExist "/one/two")] [Remove "/one/two"] (Just "delete folder : /one/two")
-            , State [Not AlwaysYes] [CreateFolder "/one/two"] (Just "create /one/two")] Nothing
+            , State [ SkipChecks ] [CreateFolder "/one/two"] (Just "create /one/two")] Nothing
           , States [FolderExists "/one/two/three"]
             [ State [Not (DoesExist "/one/two/three")] [Remove "/one/two/three"] (Just "delete folder : /one/two/three")
-            , State [Not AlwaysYes] [CreateFolder "/one/two/three"] (Just "create /one/two/three")] Nothing]
+            , State [ SkipChecks ] [CreateFolder "/one/two/three"] (Just "create /one/two/three")] Nothing]
         Nothing
       folderExists "~/one/two/three" `shouldBe`
         States [FolderExists "~/one/two/three"]
           [ States [FolderExists "~/one"]
             [ State [Not (DoesExist "~/one")] [Remove "~/one"] (Just "delete folder : ~/one")
-            , State [Not AlwaysYes] [CreateFolder "~/one"] (Just "create ~/one")] Nothing
+            , State [ SkipChecks ] [CreateFolder "~/one"] (Just "create ~/one")] Nothing
           , States [FolderExists "~/one/two"]
             [ State [Not (DoesExist "~/one/two")] [Remove "~/one/two"] (Just "delete folder : ~/one/two")
-            , State [Not AlwaysYes] [CreateFolder "~/one/two"] (Just "create ~/one/two")] Nothing
+            , State [ SkipChecks ] [CreateFolder "~/one/two"] (Just "create ~/one/two")] Nothing
           , States [FolderExists "~/one/two/three"]
             [ State [Not (DoesExist "~/one/two/three")] [Remove "~/one/two/three"] (Just "delete folder : ~/one/two/three")
-            , State [Not AlwaysYes] [CreateFolder "~/one/two/three"] (Just "create ~/one/two/three")] Nothing]
+            , State [ SkipChecks ] [CreateFolder "~/one/two/three"] (Just "create ~/one/two/three")] Nothing]
         Nothing
 
   describe "basic functions" $ do

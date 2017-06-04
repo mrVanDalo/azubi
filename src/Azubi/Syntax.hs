@@ -36,7 +36,7 @@ content path fileContent = States
     [ Remove path ]
     Nothing
   , State
-    [ Not AlwaysYes ]
+    [ SkipChecks ]
     [ FileContent path fileContent ]
     Nothing
   ]
@@ -56,7 +56,7 @@ stateA `requires` stateB == 'submodule' [stateB, stateA]
 
 -}
 requires :: State -> State -> State
-stateA  `requires` stateB = States [Not AlwaysYes] [stateB, stateA] Nothing
+stateA  `requires` stateB = States [ SkipChecks ] [stateB, stateA] Nothing
 
 {-|
 
@@ -68,7 +68,7 @@ will be ignored.
 
 -}
 submodule :: [State] -> State
-submodule states = States [Not AlwaysYes] states Nothing
+submodule states = States [ SkipChecks ] states Nothing
 
 
 {-|
@@ -87,7 +87,7 @@ folderExists path =
         [ State [ Not $ DoesExist folder ]
           [ Remove folder ]
           (Just $ "delete folder : " ++ folder)
-        , State [Not AlwaysYes ]
+        , State [ SkipChecks ]
           [CreateFolder folder]
           (Just $ "create " ++ folder)
         ]
@@ -121,7 +121,7 @@ link path target =
   States
   [ SymlinkExists path target ]
   [ State [Not $ DoesExist path] [Remove path] Nothing
-  , State [Not AlwaysYes] [CreateSymlink path target] Nothing
+  , State [ SkipChecks ] [CreateSymlink path target] Nothing
   ]
   (Just $ "link " ++ path ++ " -> " ++ target)
 

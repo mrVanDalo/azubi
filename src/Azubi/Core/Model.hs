@@ -92,7 +92,8 @@ _ -> No
 
 -}
   Check String [Argument] (Maybe Comment)
-  | AlwaysYes
+  -- | Will return `No` to "skip" the Checks.
+  | SkipChecks
   -- | Opposite result of a 'Check'
   | Not Check
   -- | Check if 'Path' has content

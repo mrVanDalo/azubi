@@ -34,7 +34,7 @@ run (Once command arguments result) =
     States
     [ HasFileContent result fileContent ]
     [ folderExists (takeDirectory result)
-    , State [ Not AlwaysYes ]
+    , State [ SkipChecks ]
       [ Run command arguments $ Just $ unwords $ [ "run command" , command ] ++ arguments
       , FileContent result fileContent ]
       Nothing
@@ -43,7 +43,7 @@ run (Once command arguments result) =
 
 run (Always command arguments) =
   State
-  [ Not AlwaysYes ]
+  [ SkipChecks ]
   [ Run command arguments $ Just $ unwords $ [ "run command",   command ] ++ arguments ]
   (Just $ "run always " ++ command ++ " " ++ (show arguments))
 
@@ -52,7 +52,7 @@ run (WithResults command arguments results) =
   States
   ( map translate results )
   [ State
-    [ Not AlwaysYes ]
+    [ SkipChecks ]
     [ Run command arguments $ Just $ unwords $ [ "run command" , command ] ++ arguments ]
     Nothing
   ]
