@@ -70,10 +70,10 @@ library
   exposed-modules:     Azubi
   other-modules:       Azubi.Core.Model
                        Azubi.Core.Boot
-                       Azubi.Core.StateExecutor
-                       Azubi.Core.StateExecutors.LocalUnixStateExecutor
+                       Azubi.Core.Interpreter
+                       Azubi.Core.Interpreter.LocalUnixInterpreter
                        Azubi.Syntax
-                       Azubi.Core.StateExecutors.UnixUtils
+                       Azubi.Core.Interpreter.UnixUtils
                        Azubi.Module.Installable
                        Azubi.Module.Runable
 
@@ -102,7 +102,7 @@ test-suite test_unix
                      , hspec      >= 2.3
 
   type:                exitcode-stdio-1.0
-  main-is:             TestUnixStateExecutor.hs
+  main-is:             TestUnixInterpreter.hs
   hs-source-dirs:      src test
   default-language:    Haskell2010
   ghc-options:        -Wall

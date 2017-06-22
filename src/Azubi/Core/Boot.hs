@@ -15,11 +15,10 @@ the command line.
 -}
 module Azubi.Core.Boot where
 
-import Options
-import Azubi.Core.Model
-import Azubi.Core.StateExecutor
-import Azubi.Core.StateExecutors.LocalUnixStateExecutor hiding (runCommand)
-
+import           Azubi.Core.Model
+import           Azubi.Core.Interpreter
+import           Azubi.Core.Interpreter.LocalUnixInterpreter hiding ( runCommand )
+import           Options
 
 {-|
   The function you should use to get you commands running.
@@ -31,50 +30,50 @@ azubiMain states = do
   where
     config context = check (optSystem context)
       where
-        check Gentoo = (LocalContext $ UnixSystem verbosity)
-        check Debian = (LocalContext $ UnixSystem verbosity)
-        check Ubuntu = (LocalContext $ UnixSystem verbosity)
-        verbosity = if (optVerbose context)
-                    then Verbose
-                    else Silent
+        check Gentoo = LocalContext $ UnixSystem verbosity
+        check Debian = LocalContext $ UnixSystem verbosity
+        check Ubuntu = LocalContext $ UnixSystem verbosity
+        verbosity =
+          if optVerbose context
+            then Verbose
+            else Silent
 
-
-
-extractConfiguration ::  AzubiOptions -> [String] -> IO AzubiOptions
+extractConfiguration :: AzubiOptions -> [String] -> IO AzubiOptions
 extractConfiguration opts _ = return opts
 
-data AzubiOptions = AzubiOptions { optVerbose :: Bool
-                                 , optSystem :: System
-                                 }
+data AzubiOptions = AzubiOptions
+  { optVerbose :: Bool
+  , optSystem  :: System
+  }
 
 instance Options AzubiOptions where
-  defineOptions = pure AzubiOptions
-    <*> simpleOption "verbose" False "shows the commands output"
-    <*> defineOption (optionType_enum "Target System") systemConfig
+  defineOptions =
+    pure AzubiOptions <*>
+    simpleOption "verbose" False "shows the commands output" <*>
+    defineOption (optionType_enum "Target System") systemConfig
 
-
-
-
-descriptionHelper :: (Show a ) => [String] -> [ a ] -> String
-descriptionHelper text (x:xs)= unwords $ text ++ ["[" ++ foldl (\a b -> a ++ ", " ++ (show b)) (show x) xs ++ "]" ]
+descriptionHelper :: (Show a) => [String] -> [a] -> String
+descriptionHelper text (x:xs) =
+  unwords $
+  text ++ ["[" ++ foldl (\a b -> a ++ ", " ++ show b) (show x) xs ++ "]"]
 descriptionHelper text [] = unwords text
 
-
-
-
-data System = Gentoo
-            | Debian
-            | Ubuntu
-               deriving (Show, Eq, Bounded, Enum)
+data System
+  = Gentoo
+  | Debian
+  | Ubuntu
+  deriving (Show, Eq, Bounded, Enum)
 
 systemConfig :: Option System -> Option System
 systemConfig opt =
-        opt{ optionLongFlags = ["system"]
-           , optionDefault = Gentoo
-           , optionDescription =
-             descriptionHelper
-             [ "The System type the States should"
-             , "be enforced on. Different Systems have"
-             , "different commands"]
-             [Gentoo ..]
-           }
+  opt
+  { optionLongFlags = ["system"]
+  , optionDefault = Gentoo
+  , optionDescription =
+      descriptionHelper
+        [ "The System type the States should"
+        , "be enforced on. Different Systems have"
+        , "different commands"
+        ]
+        [Gentoo ..]
+  }

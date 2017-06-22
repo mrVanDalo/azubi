@@ -1,8 +1,7 @@
-
 {-|
 
-Module      : Azubi.Core.StateExecutors.LocalUnixStateExecutor
-Description : 'StateExecutor' for Unix machines
+Module      : Azubi.Core.Interpreter.LocalUnixInterpreter
+Description : 'Interpreter' for Unix machines
 Copyright   : (c) Ingolf Wagner, 2017
 License     : GPL-3
 Maintainer  : azubi@ingolf-wagner.de
@@ -12,24 +11,22 @@ Portability : POSIX
 Run 'State's on a Unix machine.
 
 -}
+module Azubi.Core.Interpreter.LocalUnixInterpreter where
 
-module Azubi.Core.StateExecutors.LocalUnixStateExecutor where
+import           Azubi.Core.Model
+import           Azubi.Core.Interpreter
 
-import Azubi.Core.Model
-import Azubi.Core.StateExecutor
+import           System.Directory
 
-import System.Directory
+import           System.Exit
+import           System.Process                      hiding ( runCommand )
 
-import System.Process hiding (runCommand)
-import System.Exit
+import           System.Posix.Files                  ( createSymbolicLink )
 
-import System.Posix.Files (createSymbolicLink)
+import           Data.Algorithm.Diff
+import           Data.Algorithm.DiffOutput
 
-import Data.Algorithm.Diff
-import Data.Algorithm.DiffOutput
-
-
-import qualified Azubi.Core.StateExecutors.UnixUtils as Util
+import qualified Azubi.Core.Interpreter.UnixUtils as Util
 
 {-|
 
@@ -38,27 +35,37 @@ Unix System like Linux, AIX or OSX
 <https://en.wikipedia.org/wiki/Unix>
 
 -}
-data UnixSystem = UnixSystem { verbose :: Verbosity }
+newtype UnixSystem = UnixSystem
+  { verbose :: Verbosity
+  }
 
+data Verbosity
+  = Verbose
+  | Silent
 
-data Verbosity = Verbose | Silent
-
-instance LocalStateExecute UnixSystem where
-
-  prePorcessState _ (State checks commands comment) = do
+instance LocalInterpreter UnixSystem where
+  prePorcessState _ state@State {stateChecks = checks, stateCommands = commands} = do
     preProcessors <- Util.preProcessors
-    let newChecks =  (map (prePorcessCheck preProcessors) checks)
-    let newCommands = (map (preProcessCommand preProcessors) commands)
-    return $ State newChecks newCommands comment
-
-  prePorcessState systemConfig (States checks states comment) = do
+    let checkPreprocessor = prePorcessCheck preProcessors
+    let commandPreprocessor = preProcessCommand preProcessors
+    let processedChecks = map checkPreprocessor checks
+    let processedCommands = map commandPreprocessor commands
+    return
+      state {stateChecks = processedChecks, stateCommands = processedCommands}
+  prePorcessState systemConfig states@States { stateChecks = checksToPreprocess
+                                             , subStates = statesToPreProcess
+                                             } = do
     preProcessors <- Util.preProcessors
-    let newChecks = (map (prePorcessCheck preProcessors) checks)
-    newStates <-  sequence $ map (prePorcessState systemConfig) states
-    return $ States newChecks newStates comment
-
-
-  executeState systemConfig (State checks commands comment) = do
+    let checkPreprocessor = prePorcessCheck preProcessors
+    let statePreprocessor = prePorcessState systemConfig
+    let processedChecks = map checkPreprocessor checksToPreprocess
+    processedSubStates <- mapM statePreprocessor statesToPreProcess
+    return
+      states {stateChecks = processedChecks, subStates = processedSubStates}
+  executeState systemConfig State { stateChecks = checks
+                                  , stateCommands = commands
+                                  , stateComment = comment
+                                  } = do
     stateComment' comment
     checkResult <- collectCheckResults systemConfig checks
     case checkResult of
@@ -68,13 +75,12 @@ instance LocalStateExecute UnixSystem where
         case commandResult of
           Success -> return Fulfilled
           Failure -> return Unfulfilled
-
   executeState systemConfig (States check states comment) = do
     stateComment' comment
     result <- collectCheckResults systemConfig check
     case result of
       Yes -> return Fulfilled
-      No -> collectStateResults states
+      No  -> collectStateResults states
     where
       collectStateResults :: [State] -> IO StateResult
       collectStateResults [] = return Fulfilled
@@ -82,66 +88,53 @@ instance LocalStateExecute UnixSystem where
         result <- executeState systemConfig x
         case result of
           Unfulfilled -> return Unfulfilled
-          Fulfilled -> collectStateResults xs
+          Fulfilled   -> collectStateResults xs
 
 preProcessCommand :: Util.PreProcessors -> Command -> Command
-preProcessCommand _ (Run command arguments comment) =
-  Run command arguments comment
-preProcessCommand preProcessors (FileContent path content) =
-  FileContent
-  ((Util.homeUpdate preProcessors) path)
-  content
+preProcessCommand _ run@Run {} = run
+preProcessCommand preProcessors content@FileContent {filePath = path} =
+  content {filePath = Util.homeUpdate preProcessors path}
 preProcessCommand preProcessors (CreateSymlink path target) =
   CreateSymlink
-  ((Util.homeUpdate preProcessors) path)
-  ((Util.homeUpdate preProcessors) target)
+    (Util.homeUpdate preProcessors path)
+    (Util.homeUpdate preProcessors target)
 preProcessCommand preProcessors (CreateFolder path) =
-  CreateFolder
-  ((Util.homeUpdate preProcessors) path)
-
+  CreateFolder (Util.homeUpdate preProcessors path)
 preProcessCommand preProcessors (Remove path) =
-  Remove
-  ((Util.homeUpdate preProcessors) path)
+  Remove (Util.homeUpdate preProcessors path)
 
 prePorcessCheck :: Util.PreProcessors -> Check -> Check
-prePorcessCheck _ (Check command arguments comment) =
-  Check command arguments comment
-prePorcessCheck _ SkipChecks =
-  SkipChecks
+prePorcessCheck _ check@Check {} = check
+prePorcessCheck _ SkipChecks = SkipChecks
 prePorcessCheck preProcessors (Not check) =
   Not (prePorcessCheck preProcessors check)
-prePorcessCheck preProcessors (HasFileContent path content) =
-  HasFileContent
-  ((Util.homeUpdate preProcessors) path)
-  content
+prePorcessCheck preProcessors content@HasFileContent {pathToCheck = path} =
+  content {pathToCheck = Util.homeUpdate preProcessors path}
 prePorcessCheck preProcessors (SymlinkExists path target) =
   SymlinkExists
-  ((Util.homeUpdate preProcessors) path)
-  ((Util.homeUpdate preProcessors) target)
+    (Util.homeUpdate preProcessors path)
+    (Util.homeUpdate preProcessors target)
 prePorcessCheck preProcessors (FolderExists path) =
-  FolderExists
-  ((Util.homeUpdate preProcessors) path)
+  FolderExists (Util.homeUpdate preProcessors path)
 prePorcessCheck preProcessors (DoesExist path) =
-  DoesExist
-  ((Util.homeUpdate preProcessors) path)
-
+  DoesExist (Util.homeUpdate preProcessors path)
 
 -- | unroll a number of Check(s)
 -- | If one fail, they all fail
 collectCheckResults :: UnixSystem -> [Check] -> IO CheckResult
 collectCheckResults _ [] = return Yes
 collectCheckResults systemConfig (check:rest) = do
-        result <- runCheck systemConfig check
-        case result of
-          Yes -> collectCheckResults systemConfig rest
-          No -> return No
+  result <- runCheck systemConfig check
+  case result of
+    Yes -> collectCheckResults systemConfig rest
+    No  -> return No
 
 -- | unroll a number of Run Commands
 -- | if one fail, they all fail
 collectRunResults :: UnixSystem -> [Command] -> IO CommandResult
 collectRunResults _ [] = return Success
-collectRunResults systemConfig (command:rest) = do
-  result <- runCommand systemConfig command
+collectRunResults systemConfig (commandToRun:rest) = do
+  result <- runCommand systemConfig commandToRun
   case result of
     Success -> collectRunResults systemConfig rest
     Failure -> return Failure
@@ -152,30 +145,28 @@ runCommand systemConfig (CreateFolder path) = do
   logger' systemConfig commandComment' ["create directory ", path]
   createDirectoryIfMissing True path
   return Success
-
 runCommand systemConfig (FileContent path content) = do
   logger' systemConfig commandComment' ["write content to ", path]
   writeFile path $ unlines content
   return Success
-
 runCommand systemConfig (CreateSymlink path target) = do
   logger' systemConfig commandComment' ["create link", path, " to ", target]
   createSymbolicLink target path
   return Success
-
-runCommand systemConfig (Run command arguments comment) = do
+runCommand systemConfig (Run commandToRun arguments comment) = do
   commandComment' comment
-  logger' systemConfig commandComment' ["run shell command", command, show arguments] 
-  result <- runProcess' systemConfig [command] arguments
+  logger'
+    systemConfig
+    commandComment'
+    ["run shell command", commandToRun, show arguments]
+  result <- runProcess' systemConfig commandToRun arguments
   case result of
     ExitSuccess -> return Success
-    _ -> return Failure
-
+    _           -> return Failure
 runCommand systemConfig (Remove path) = do
   logger' systemConfig commandComment' ["remove", path]
   removePathForcibly path
   return Success
-
 
 -- | Run a Check
 runCheck :: UnixSystem -> Check -> IO CheckResult
@@ -188,22 +179,29 @@ runCheck systemConfig (FolderExists path) = do
     _ -> do
       logger' systemConfig checkComment' ["FolderExists", path, ": NO"]
       return No
-
 runCheck systemConfig (SymlinkExists path target) = do
   behind <- whatIsBehind' path
   case behind of
-    IsSymlink behindTarget -> do
+    IsSymlink behindTarget ->
       if behindTarget == target
-      then do
-        logger' systemConfig checkComment' ["SymlinkExists", path, "->", target, ": YES"]
-        return Yes
-      else do
-        logger' systemConfig checkComment' ["SymlinkExists", path, "->", target, ": NO"]
-        return No
+        then do
+          logger'
+            systemConfig
+            checkComment'
+            ["SymlinkExists", path, "->", target, ": YES"]
+          return Yes
+        else do
+          logger'
+            systemConfig
+            checkComment'
+            ["SymlinkExists", path, "->", target, ": NO"]
+          return No
     _ -> do
-      logger' systemConfig checkComment' ["SymlinkExists", path, "->", target, ": NO"]
+      logger'
+        systemConfig
+        checkComment'
+        ["SymlinkExists", path, "->", target, ": NO"]
       return No
-
 runCheck systemConfig (HasFileContent path content) = do
   behind <- whatIsBehind' path
   case behind of
@@ -214,59 +212,61 @@ runCheck systemConfig (HasFileContent path content) = do
   where
     checkContent = do
       file <- readFile path
-      currentContent <- return $ lines file
-      diff <- return $ getGroupedDiff currentContent content
+      let currentContent = lines file
+      let diff = getGroupedDiff currentContent content
       case diff of
-        (Both _ _):[] -> do
+        [Both _ _] -> do
           logger' systemConfig checkComment' ["HasFileContent", path, ": YES"]
           return Yes
         _ -> do
           logger' systemConfig checkComment' ["HasFileContent", path, ": NO"]
           echo' [ppDiff diff]
           return No
-
-runCheck systemConfig (Check command args comment) = do
+runCheck systemConfig (Check commandToRun args comment) = do
   checkComment' comment
-  result <- runProcess' systemConfig [command] args
+  result <- runProcess' systemConfig commandToRun args
   case result of
     ExitSuccess -> do
-      logger' systemConfig checkComment' ["Shell Command Check", command , show args , ": YES"]
+      logger'
+        systemConfig
+        checkComment'
+        ["Shell Command Check", commandToRun, show args, ": YES"]
       return Yes
     _ -> do
-      logger' systemConfig checkComment' ["Shell Command Check", command , show args , ": NO"]
+      logger'
+        systemConfig
+        checkComment'
+        ["Shell Command Check", commandToRun, show args, ": NO"]
       return No
-
-runCheck systemConfig  (Not check ) = do
+runCheck systemConfig (Not check) = do
   result <- runCheck systemConfig check
   case result of
-    No -> return Yes
-    Yes  -> return No
-
+    No  -> return Yes
+    Yes -> return No
 -- returns `No` to make the State run always the Commands
 runCheck _ SkipChecks = return No
-
 runCheck systemConfig (DoesExist path) = do
   behind <- whatIsBehind' path
   case behind of
     DoesNotExist -> do
-      logger' systemConfig checkComment' ["DoesExist",path, ": NO"]
+      logger' systemConfig checkComment' ["DoesExist", path, ": NO"]
       return No
     _ -> do
-      logger' systemConfig checkComment' ["DoesExist",path, ": YES"]
+      logger' systemConfig checkComment' ["DoesExist", path, ": YES"]
       return Yes
 
-
-data FileType = IsFile
-              | DoesNotExist
-              | IsSymlink Path
-              | IsFolder
-              deriving (Show, Eq)
+data FileType
+  = IsFile
+  | DoesNotExist
+  | IsSymlink Path
+  | IsFolder
+  deriving (Show, Eq)
 
 -- | helper function to check whats behind a path
 whatIsBehind' :: String -> IO FileType
 whatIsBehind' path' = do
   preProcessors <- Util.preProcessors
-  let path = (Util.homeUpdate preProcessors) path'
+  let path = Util.homeUpdate preProcessors path'
   exists <- doesPathExist path
   if exists
     then figureOutFileType path
@@ -277,8 +277,8 @@ whatIsBehind' path' = do
       checkSymlink <- pathIsSymbolicLink path
       case (checkSymlink, checkFolder) of
         (True, _) -> do
-            target <- getSymbolicLinkTarget path
-            return $ IsSymlink target
+          target <- getSymbolicLinkTarget path
+          return $ IsSymlink target
         (False, True) -> return IsFolder
         (False, False) -> return IsFile
 
@@ -288,42 +288,41 @@ run a process and wait until it's finished
 return the exit code
 
 -}
-runProcess' :: UnixSystem -> [String] -> [String] -> IO ExitCode
-runProcess' systemConfig command args =  do
-  (_, _ , _ , checkHandle ) <- createProcess (shell $ unwords $ command ++ args ){ std_out = stdOutHandle }
+runProcess' :: UnixSystem -> String -> [String] -> IO ExitCode
+runProcess' systemConfig commandToRun args = do
+  (_, _, _, checkHandle) <- createProcess shellProcess {std_out = stdOutHandle}
   waitForProcess checkHandle
   where
+    shellCommand = unwords $ commandToRun : args
+    shellProcess = shell shellCommand
     stdOutHandle :: StdStream
     stdOutHandle =
-      case (verbose systemConfig) of
+      case verbose systemConfig of
         Verbose -> Inherit
-        Silent -> NoStream
-
+        Silent  -> NoStream
 
 -- | simple print function
 echo' :: [String] -> IO ()
-echo' text = putStrLn $ unwords $ "[Azubi]":text
-
+echo' text = putStrLn $ unwords $ "[Azubi]" : text
 
 -- | render state comments
 stateComment' :: Maybe Comment -> IO ()
 stateComment' (Just comment) = echo' ["[State]", comment]
-stateComment' Nothing = return ()
+stateComment' Nothing        = return ()
 
 -- | render command comments
 commandComment' :: Maybe Comment -> IO ()
 commandComment' (Just comment) = echo' ["[Run]", comment]
-commandComment' Nothing = return ()
+commandComment' Nothing        = return ()
 
 -- | render check comments
 checkComment' :: Maybe Comment -> IO ()
 checkComment' (Just comment) = echo' ["[Check]", comment]
-checkComment' Nothing = return ()
+checkComment' Nothing        = return ()
 
 logger' :: UnixSystem -> (Maybe Comment -> IO ()) -> [Comment] -> IO ()
 logger' _ _ [] = return ()
 logger' systemConfig messager comment =
-  case (verbose systemConfig) of
+  case verbose systemConfig of
     Verbose -> messager $ Just $ unwords comment
-    Silent -> return ()
-
+    Silent  -> return ()
