@@ -134,3 +134,31 @@ instance Updatable Git where
          , gitRepositoryUrl package
          , ")"
          ])
+
+{-|
+
+Gem installer. The Ruby package manager
+
+<https://rubygems.org/>
+
+-}
+data GemOption =
+  User
+  deriving (Enum, Show, Eq)
+
+data Gem = Gem
+  { gemPackageName :: String
+  , gemOptions     :: [GemOption]
+  }
+
+instance Installable Gem where
+  installed Gem {gemPackageName = package, gemOptions = options} =
+    State
+      [Check "gem" ["list", "-i", package] Nothing]
+      [installCommand]
+      (Just $ "installed gem " ++ package)
+    where
+      installCommand =
+        if User `elem` options
+          then Run "gem" ["install", "--user-install", package] Nothing
+          else Run "gem" ["install", package] Nothing
