@@ -162,3 +162,6 @@ instance Installable Gem where
         if User `elem` options
           then Run "gem" ["install", "--user-install", package] Nothing
           else Run "gem" ["install", package] Nothing
+
+
+ -- todo : add updatable as well
