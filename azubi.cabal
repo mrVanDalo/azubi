@@ -10,7 +10,7 @@ name:                azubi
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             0.2.0.2
+version:             0.2.0.3
 
 -- A short (one-line) description of the package.
 synopsis:            A simple DevOps tool which will never "reach" enterprice level.
@@ -57,6 +57,7 @@ tested-With:         GHC == 7.10.3
                    , GHC == 7.10.2
                    , GHC == 7.10.1
                    , GHC == 8.0.1
+                   , GHC == 8.0.2
 
 source-repository head
   type:              git
@@ -70,9 +71,10 @@ library
   exposed-modules:     Azubi
   other-modules:       Azubi.Core.Model
                        Azubi.Core.Boot
-                       Azubi.Core.StateExecutor
-                       Azubi.Core.StateExecutors.LocalUnixStateExecutor
+                       Azubi.Core.Interpreter
+                       Azubi.Core.Interpreter.LocalUnixInterpreter
                        Azubi.Syntax
+                       Azubi.Core.Interpreter.UnixUtils
                        Azubi.Module.Installable
                        Azubi.Module.Runable
 
@@ -101,7 +103,7 @@ test-suite test_unix
                      , hspec      >= 2.3
 
   type:                exitcode-stdio-1.0
-  main-is:             TestUnixStateExecutor.hs
+  main-is:             TestUnixInterpreter.hs
   hs-source-dirs:      src test
   default-language:    Haskell2010
   ghc-options:        -Wall

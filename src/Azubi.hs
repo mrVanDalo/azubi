@@ -23,30 +23,31 @@ main = azubiMain $ []
 @
 
 -}
-module Azubi ( State(..)
-             , Ebuild(..)
-             , Git(..)
-             , GitOption(..)
-             , RunCommand(..)
-             , installed
-             , Installable
-             , uptodate
-             , Updatable
-             , run
-             , link
-             , folderExists
-             , content
-             , requires
-             , submodule
-             , (&)
-             , azubiMain
-             , Command(..)
-             , Check(..)
-             ) where
+module Azubi
+  ( State(..)
+  , Ebuild(..)
+  , Git(..)
+  , GitOption(..)
+  , RunCommand(..)
+  , RunResult(..)
+  , installed
+  , Installable
+  , uptodate
+  , Updatable
+  , run
+  , link
+  , folderExists
+  , content
+  , requires
+  , submodule
+  , (&)
+  , azubiMain
+  , Command(..)
+  , Check(..)
+  ) where
 
-
-import Azubi.Core.Model
-import Azubi.Core.Boot
-import Azubi.Syntax
-import Azubi.Module.Runable
-import Azubi.Module.Installable
+import           Azubi.Core.Boot
+import           Azubi.Core.Model
+import           Azubi.Module.Installable
+import           Azubi.Module.Runable
+import           Azubi.Syntax

@@ -1,4 +1,3 @@
-
 {-|
 
 Module      : Azubi.Core.Model
@@ -28,10 +27,12 @@ can be run on different setups.
 -}
 module Azubi.Core.Model where
 
-
 type Path = String
+
 type Target = String
+
 type Argument = String
+
 type Comment = String
 
 {-|
@@ -46,13 +47,17 @@ it will create a 'CommandResult'.
 @ command -> exit code -> 'CommandResult' @
 
 -}
-data Command = Run String [Argument] (Maybe Comment)
-             | FileContent Path [String]
-             | CreateSymlink Path Target
-             | CreateFolder Path
-             | Remove Path
-             deriving (Show, Eq)
-
+data Command
+  = Run { command          :: String
+        , commandArguments :: [String]
+        , commandComment   :: Maybe String }
+  | FileContent { filePath    :: String
+                , fileContent :: [String] }
+  | CreateSymlink { linkPath   :: String
+                  , linkTarget :: String }
+  | CreateFolder { folderPath :: String }
+  | Remove { removePath :: String }
+  deriving (Show, Eq)
 
 {-|
 
@@ -65,10 +70,10 @@ _ -> 'Failure'
 @
 
 -}
-data CommandResult = Success
-                   | Failure
-                   deriving (Show, Enum, Eq)
-
+data CommandResult
+  = Success
+  | Failure
+  deriving (Show, Enum, Eq)
 
 {-|
 
@@ -80,7 +85,7 @@ check -> exit code -> success/failure
 @
 
 -}
-data Check =
+data Check
   {-|
 
 Check if command returns exit status
@@ -91,28 +96,34 @@ _ -> No
 @
 
 -}
-  Check String [Argument] (Maybe Comment)
-  | AlwaysYes
+  = Check { checkCommand   :: String
+          , checkArguments :: [String]
+          , checkComment   :: Maybe String }
+  -- | Will return `No` to "skip" the Checks.
+  | SkipChecks
   -- | Opposite result of a 'Check'
   | Not Check
   -- | Check if 'Path' has content
-  | HasFileContent Path [String]
+  | HasFileContent { pathToCheck    :: String
+                   , contentToCheck :: [String] }
   -- | Check if a Symbolic link exists to a specific target
-  | SymlinkExists Path Target
+  | SymlinkExists { pathToCheck   :: String
+                  , targetToCheck :: String }
   -- | Check if a folder exists
-  | FolderExists Path
+  | FolderExists { pathToCheck :: String }
   -- | Check if something exists at path
-  | DoesExist Path
-           deriving (Show, Eq)
+  | DoesExist { pathToCheck :: String }
+  deriving (Show, Eq)
 
 {-|
 
 The result of a 'Check'.
 
 -}
-data CheckResult = Yes
-                 | No
-                 deriving (Show, Enum, Eq)
+data CheckResult
+  = Yes
+  | No
+  deriving (Show, Enum, Eq)
 
 {-|
 
@@ -130,20 +141,21 @@ Same holdes for 'States' if one of the states fail,
 the following 'State's will not be /run/.
 
 -}
-data State =
-
+data State
   -- | State contains checks and commands
   -- if one command failed
   -- the following commands will not be
   -- executed.
-  State [Check] [Command] (Maybe Comment)
-
+  = State { stateChecks   :: [Check]
+          , stateCommands :: [Command]
+          , stateComment  :: Maybe String }
   -- | To create depended states
   -- which should stop being executed
   -- when a previous state fails
-  | States [Check] [State] (Maybe Comment)
-           deriving (Show, Eq)
-
+  | States { stateChecks  :: [Check]
+           , subStates    :: [State]
+           , stateComment :: Maybe String }
+  deriving (Show, Eq)
 
 {-|
 
@@ -154,11 +166,7 @@ When a 'State' is /run/ it returns one of the 'StateResult's.
 * negative 'CheckResult's with negative 'CommandResult's will result in 'Unfulfilled'.
 
 -}
-data StateResult = Fulfilled
-                 | Unfulfilled
-                 deriving (Show, Eq, Enum)
-
-
-
-
-
+data StateResult
+  = Fulfilled
+  | Unfulfilled
+  deriving (Show, Eq, Enum)
