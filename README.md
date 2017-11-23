@@ -5,6 +5,11 @@
 [![License](https://img.shields.io/badge/license-gpl-green.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 [![Join the chat at https://gitter.im/azubi-configuration/Lobby](https://badges.gitter.im/azubi-configuration/Lobby.svg)](https://gitter.im/azubi-configuration/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+
+    This Package is deprecated and will not be continued.
+    I recommended you to use Ansible
+
+
 Is a very simple DevOps tool, which will never "reach" enterprise level.
 
 ## Goals
